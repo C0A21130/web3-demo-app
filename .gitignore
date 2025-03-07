@@ -1,3 +1,9 @@
+# hardhat
+artifacts/
+cache/
+ignition/
+typechain-types/
+
 # Logs
 logs
 *.log
