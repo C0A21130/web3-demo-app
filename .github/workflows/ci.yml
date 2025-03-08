@@ -9,8 +9,12 @@ on:
       - main
 
 jobs:
-  test:
+  test-frontend:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./frontend
 
     steps:
       - name: Checkout code
