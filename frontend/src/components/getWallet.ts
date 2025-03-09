@@ -7,7 +7,7 @@ import { ethers, Wallet, HDNodeWallet } from 'ethers';
  * @see https://docs.ethers.org/v6/api/wallet/
 **/
 const getWallet = async (localStorage: Storage) => {
-    const rpcUrl = 'http://10.203.92.71:8545';
+    const rpcUrl = 'http://localhost:8545';
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     let wallet: Wallet | HDNodeWallet;
 

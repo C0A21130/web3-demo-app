@@ -24,6 +24,10 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '22'  # 必要に応じてバージョンを変更
+      
+      - name: start hardhat node
+        run: npx hardhat node
+        working-directory: ./contracts
 
       - name: Install dependencies
         run: npm install
