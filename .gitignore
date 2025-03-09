@@ -1,7 +1,7 @@
 # hardhat
 artifacts/
 cache/
-ignition/
+deployments/
 typechain-types/
 
 # Logs
