@@ -27,3 +27,25 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+  test-contract:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./contracts
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22'  # 必要に応じてバージョンを変更
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Hardhat tests
+        run: npm test
