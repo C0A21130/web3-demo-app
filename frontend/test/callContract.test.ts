@@ -4,6 +4,7 @@ import getWallet from '../src/components/getWallet';
 import { ethers } from 'ethers';
 import SsdlabAbi from './../abi/SsdlabToken.json';
 import putToken from '../src/components/putToken';
+import fetchToken from '../src/components/fetchToken';
 
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
@@ -30,7 +31,6 @@ describe('callContract', () => {
 
   it('should mint for NFT', async () => {
     // Get wallet
-    const localStorage = localStorageMock;
     const wallet = await getWallet(localStorage);
     if (wallet === undefined) { return; }
     const provider = wallet.provider;
@@ -43,6 +43,16 @@ describe('callContract', () => {
 
     // Check if token was minted
     const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
-    expect(await contract.getTokenName(1)).toBe(tokenName);
+    expect(await contract.getTokenName(0)).toBe(tokenName);
   });
+
+  it('should fetch tokens', async () => {
+    const wallet = await getWallet(localStorage);
+    if (wallet === undefined) { return; }
+
+    const tokens = await fetchToken(wallet, contractAddress)
+    expect(tokens.length).toBeGreaterThan(0);
+    expect(tokens[0].name).toBe('Frends Lost Token');
+    expect(tokens[0].tokenId).toBe(0);
+  }, 30000);
 });
