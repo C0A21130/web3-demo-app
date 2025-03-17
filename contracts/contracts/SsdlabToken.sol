@@ -8,7 +8,7 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 contract SsdlabToken is ERC721, AccessControl {
     bytes32 public constant TEACHER_ROLE = keccak256("TEACHER_ROLE");
     bytes32 public constant STUDENTS_ROLE = keccak256("STUDENTS_ROLE"); 
-    uint256 private _nextTokenId;
+    uint256 private _nextTokenId = 0;
 
 
     // 貢献の詳細のマッピング
@@ -26,9 +26,10 @@ contract SsdlabToken is ERC721, AccessControl {
     }
 
     function safeMint(address to, string memory _tokenName) public returns (uint256) {
-        uint256 tokenId = _nextTokenId++;
+        uint256 tokenId = _nextTokenId;
         _safeMint(to, tokenId);
-        _tokenNames[tokenId] = _tokenName;
+        setTokenName(tokenId, _tokenName);
+        _nextTokenId++;
         return tokenId;
     }
 
