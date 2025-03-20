@@ -1,13 +1,14 @@
 import { ethers, Wallet, HDNodeWallet } from 'ethers';
+import SsdlabAbi from './../../abi/SsdlabToken.json';
 
 /**
+ * @param rpcUrl - RPC URL
  * @param localStorage - ローカルストレージ
  * @returns wallet - ウォレット。walletはsignerの一種。
  * @description ローカルストレージに保存されている秘密鍵を取得し、ウォレットを生成する。秘密鍵が存在しない場合は、新しい秘密鍵を生成し、ローカルストレージに保存する。
  * @see https://docs.ethers.org/v6/api/wallet/
 **/
-const getWallet = async (localStorage: Storage) => {
-    const rpcUrl = 'http://localhost:8545';
+const getWallet = async (rpcUrl: string, localStorage: Storage) => {
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     let wallet: Wallet | HDNodeWallet;
 

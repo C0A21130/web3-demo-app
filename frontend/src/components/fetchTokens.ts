@@ -1,5 +1,5 @@
-import { ethers, Wallet, HDNodeWallet, formatUnits, EventLog } from "ethers";
-import SsdlabAbi from "./../../abi/SsdlabToken.json";
+import { ethers, Wallet, HDNodeWallet, EventLog } from "ethers";
+import SsdlabAbi from "../../abi/SsdlabToken.json";
 
 /**
  * This function fetches the tokens minted by the provided wallet and contract address.
@@ -7,7 +7,7 @@ import SsdlabAbi from "./../../abi/SsdlabToken.json";
  * @param contractAddress 
  * @returns
  */
-const fetchToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string) => {
+const fetchTokens = async (wallet: Wallet | HDNodeWallet, contractAddress: string) => {
     const tokens: Token[] = [];
     const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
 
@@ -27,4 +27,4 @@ const fetchToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string
     return tokens;
 };
 
-export default fetchToken;
+export default fetchTokens;
