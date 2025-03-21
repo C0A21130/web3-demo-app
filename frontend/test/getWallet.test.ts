@@ -24,4 +24,23 @@ describe('getWallet', () => {
     const id = await contract.getId();
     expect(Number(formatUnits(id, 0))).toBe(1);
   });
+
+  it('should send ether', async () => {
+    // Get wallet
+    const localStorage = localStorageMock;
+    const wallet = await getWallet(rpcUrl, localStorage);
+    if (wallet === undefined) { return; }
+    const provider = wallet.provider;
+    if (provider === null) { return; }
+
+    // Send ether
+    const owner = new ethers.Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
+    const tx = {
+      to: wallet.address,
+      value: ethers.parseEther('1.0')
+    };
+    await owner.sendTransaction(tx);
+    const walletBalance = await provider.getBalance(wallet.address);
+    expect(ethers.formatEther(walletBalance)).toBe('1.0');
+  });
 });
