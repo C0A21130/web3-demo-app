@@ -15,7 +15,6 @@ const putToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, 
     const provider = wallet.provider;
     if (provider === null) { return; }
     const balance = await provider.getBalance(wallet.address);
-    console.log('balance:', formatEther(balance));
 
     // Check if the wallet has enough balance to mint NFT
     if (formatEther(balance) == "0.0") {

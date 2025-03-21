@@ -5,8 +5,9 @@ import { ethers } from 'ethers';
 import SsdlabAbi from './../abi/SsdlabToken.json';
 import putToken from '../src/components/putToken';
 import fetchToken from '../src/components/fetchTokens';
+import transferToken from '../src/components/transferToken';
 
-const rpcUrl = 'http://localhost:8545';
+const rpcUrl = 'http://10.203.92.71:8545';
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
 const sendEther = async (wallet: ethers.Wallet, to: string, amount: string) => {
@@ -51,5 +52,28 @@ describe('callContract', () => {
     expect(tokens.length).toBeGreaterThan(0);
     expect(tokens[0].name).toBe('Frends Lost Token');
     expect(tokens[0].tokenId).toBe(0);
+  }, 30000);
+
+  it('should transfer token', async () => {
+    const student1Wallet = await getWallet(rpcUrl, localStorage);
+    const student2Wallet = await getWallet(rpcUrl, localStorage2);
+    if (student1Wallet === undefined || student2Wallet === undefined) { return; }
+    const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, student1Wallet);
+
+    // transfer ether to student wallet
+    const provider = student1Wallet.provider;
+    if (provider === null) { return; }
+    const teacherWallet = new ethers.Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
+    await sendEther(teacherWallet, student1Wallet.address, '1.0');
+    await sendEther(teacherWallet, student2Wallet.address, '1.0');
+
+    // Mint token
+    let txReceipt = await putToken(student1Wallet, contractAddress, 'Frends Lost Token');
+    await txReceipt.wait();
+
+    // Transfer token
+    const tokenId = 0;
+    await transferToken(student1Wallet, contractAddress, student2Wallet.address, tokenId);
+    expect(await contract.ownerOf(tokenId)).toBe(student2Wallet.address);
   }, 30000);
 });
