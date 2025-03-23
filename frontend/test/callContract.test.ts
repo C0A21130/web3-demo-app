@@ -76,4 +76,33 @@ describe('callContract', () => {
     await transferToken(student1Wallet, contractAddress, student2Wallet.address, tokenId);
     expect(await contract.ownerOf(tokenId)).toBe(student2Wallet.address);
   }, 30000);
+
+  it("should set user name and get user name", async () => {
+    // Get wallet
+    const student1wallet = await getWallet(rpcUrl, localStorage);
+    const student2Wallet = await getWallet(rpcUrl, localStorage2);
+    if (student1wallet === undefined || student2Wallet === undefined) { return; }
+
+    // send ether to student wallet
+    const provider = student1wallet.provider;
+    if (provider === null) { return; }
+    const teacherWallet = new ethers.Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
+    await sendEther(teacherWallet, student1wallet.address, '1.0');
+    await sendEther(teacherWallet, student2Wallet.address, '1.0');
+
+    // set user name
+    const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, teacherWallet);
+    const user1Name = 'student1';
+    const txSetUser1 = await contract.setUserAddress(user1Name, student1wallet.address);
+    await txSetUser1.wait();
+    const user2Name = "student2";
+    const txSetUser2 = await contract.setUserAddress(user2Name, student2Wallet.address);
+    await txSetUser2.wait();
+
+    // get user name
+    const user1Address = await contract.getUserAddress(user1Name);
+    const user2Address = await contract.getUserAddress(user2Name);
+    expect(user1Address).toBe(student1wallet.address);
+    expect(user2Address).toBe(student2Wallet.address);
+  }, 30000);
 });
