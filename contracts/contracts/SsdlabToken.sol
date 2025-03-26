@@ -10,7 +10,6 @@ contract SsdlabToken is ERC721, AccessControl {
     bytes32 public constant STUDENTS_ROLE = keccak256("STUDENTS_ROLE"); 
     uint256 private _nextTokenId = 0;
 
-
     // 貢献の詳細のマッピング
     mapping(uint256 => string) private _tokenNames;
 
