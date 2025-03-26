@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Text, Avatar, UnstyledButton, ThemeIcon } from '@mantine/core';
+import { NavLink } from 'react-router-dom';
+import { Text, UnstyledButton, ThemeIcon } from '@mantine/core';
 import { IconHome, IconUser } from '@tabler/icons-react';
 
 interface NavbarProps {
@@ -10,8 +11,8 @@ const Navbar = (props: NavbarProps) => {
   const { opened } = props;
   const [active, setActive] = useState('Home');
   const menuItems = [
-    { icon: <IconHome size={16} />, label: 'Home' },
-    { icon: <IconUser size={16} />, label: 'User' },
+    { icon: <IconHome size={16} />, label: 'Home', url: "/" },
+    { icon: <IconUser size={16} />, label: 'User', url: "/user" },
   ];
 
   return (
@@ -22,12 +23,14 @@ const Navbar = (props: NavbarProps) => {
           onClick={() => setActive(item.label)}
           className={`flex items-center p-2 rounded-md mt-4 ${active === item.label ? 'bg-blue-50' : ''}`}
         >
-          <ThemeIcon size="lg" color={active === item.label ? 'blue' : 'gray'}>
-            {item.icon}
-          </ThemeIcon>
-          <Text size="sm" className="ml-2">
-            {item.label}
-          </Text>
+          <NavLink to={item.url} className="flex items-center w-full">
+            <ThemeIcon size="lg" color={active === item.label ? 'blue' : 'gray'}>
+              {item.icon}
+            </ThemeIcon>
+            <Text size="sm" className="ml-2">
+              {item.label}
+            </Text>
+          </NavLink>
         </UnstyledButton>
       ))}
     </div>
