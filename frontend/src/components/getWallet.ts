@@ -1,5 +1,4 @@
 import { ethers, Wallet, HDNodeWallet } from 'ethers';
-import SsdlabAbi from './../../abi/SsdlabToken.json';
 
 /**
  * @param rpcUrl - RPC URL

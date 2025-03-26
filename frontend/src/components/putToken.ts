@@ -1,4 +1,4 @@
-import { ethers, Wallet, HDNodeWallet, formatEther, parseEther } from "ethers";
+import { ethers, Wallet, HDNodeWallet, formatEther } from "ethers";
 import SsdlabAbi from './../../abi/SsdlabToken.json';
 
 /**
