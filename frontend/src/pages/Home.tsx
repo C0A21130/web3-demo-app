@@ -12,18 +12,32 @@ const Home = () => {
   useEffect(() => {
     const getTokens = async () => {
       if (wallet == undefined) { return; }
-      const tokens = await fetchTokens(wallet, contractAddress);
+      const tokens = await fetchTokens(wallet, contractAddress, "all");
       setTokens(tokens);
     }
     getTokens();
   }, []);
 
+  // If the wallet is not connected, display a message
   if(wallet == undefined) {
     return (
       <div className='mt-12'>
         <Container className="mt-4">
           <Card shadow="sm" padding="lg" className="mb-4">
             <Text size="lg">Please Connect Wallet</Text>
+          </Card>
+        </Container>
+      </div>
+    );
+  }
+
+  // If there are no tokens, display a message
+  if(tokens.length == 0) {
+    return (
+      <div className='mt-12'>
+        <Container className="mt-4">
+          <Card shadow="sm" padding="lg" className="mb-4">
+            <Text size="lg">No tokens found</Text>
           </Card>
         </Container>
       </div>
