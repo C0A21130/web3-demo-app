@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, createContext, Dispatch, SetStateAction } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Wallet, HDNodeWallet } from 'ethers';
+import { AppShell, MantineProvider } from '@mantine/core';
+import Header from './components/Header';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Present from './pages/Present';
+import User from './pages/User';
+import './index.css';
+import '@mantine/core/styles.css';
+
+export const walletContext = createContext<[Wallet | HDNodeWallet | undefined, Dispatch<SetStateAction<Wallet | HDNodeWallet | undefined>>]>([undefined, () => {}]);
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [opened, setOpened] = useState(false);
+  const [wallet, setWallet] = useState<Wallet | HDNodeWallet>();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <BrowserRouter>
+      <MantineProvider>
+        <walletContext.Provider value={[wallet, setWallet]}>
+          <AppShell>
+            <AppShell.Header>
+              <Header opened={opened} setOpened={setOpened} />
+            </AppShell.Header>
+            <AppShell.Navbar className='mt-8'>
+              <Navbar opened={opened} />
+            </AppShell.Navbar>
+            <AppShell.Main>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/present" element={<Present />} />
+                <Route path="/user" element={<User />} />
+              </Routes>
+            </AppShell.Main>
+          </AppShell>
+        </walletContext.Provider>
+      </MantineProvider>
+    </BrowserRouter>
   )
 }
 
-export default App
+export default App;

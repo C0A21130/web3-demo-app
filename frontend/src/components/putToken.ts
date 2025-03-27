@@ -1,4 +1,4 @@
-import { ethers, Wallet, HDNodeWallet, formatEther, parseEther } from "ethers";
+import { ethers, Wallet, HDNodeWallet, formatEther } from "ethers";
 import SsdlabAbi from './../../abi/SsdlabToken.json';
 
 /**
@@ -24,8 +24,8 @@ const putToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, 
     // Call contract to mint NFT
     try {
         const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
-        const txReceipt = await contract.safeMint(wallet.address, tokenName);
-        await txReceipt.wait();
+        const tx = await contract.safeMint(wallet.address, tokenName);
+        const txReceipt = await tx.wait();
         return txReceipt;
     } catch (error) {
         console.error(error);

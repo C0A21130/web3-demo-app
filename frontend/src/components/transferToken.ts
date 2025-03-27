@@ -23,7 +23,8 @@ const transferToken = async (wallet: Wallet | HDNodeWallet, contractAddress: str
   // Call contract to transfer NFT
   try {
     const tx = await contract.safeTransferFrom(from, to, tokenId);
-    await tx.wait();
+    const txReceipt = await tx.wait();
+    return txReceipt;
   } catch (error) {
     console.error(error);
     throw new Error('Failed to transfer NFT');

@@ -36,8 +36,7 @@ describe('callContract', () => {
 
     // Call contract to mint NFT
     const tokenName = 'Frends Lost Token';
-    const txReceipt = await putToken(wallet, contractAddress, tokenName);
-    await txReceipt.wait();
+    await putToken(wallet, contractAddress, tokenName);
 
     // Check if token was minted
     const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
@@ -48,7 +47,7 @@ describe('callContract', () => {
     const wallet = await getWallet(rpcUrl, localStorage);
     if (wallet === undefined) { return; }
 
-    const tokens = await fetchToken(wallet, contractAddress)
+    const tokens = await fetchToken(wallet, contractAddress, 'all');
     expect(tokens.length).toBeGreaterThan(0);
     expect(tokens[0].name).toBe('Frends Lost Token');
     expect(tokens[0].tokenId).toBe(0);
@@ -68,13 +67,16 @@ describe('callContract', () => {
     await sendEther(teacherWallet, student2Wallet.address, '1.0');
 
     // Mint token
-    let txReceipt = await putToken(student1Wallet, contractAddress, 'Frends Lost Token');
-    await txReceipt.wait();
+    const txReceipt = await putToken(student1Wallet, contractAddress, 'Frends Lost Token');
 
     // Transfer token
-    const tokenId = 0;
+    const tokenId = txReceipt.logs[0].args[2];
     await transferToken(student1Wallet, contractAddress, student2Wallet.address, tokenId);
     expect(await contract.ownerOf(tokenId)).toBe(student2Wallet.address);
+
+    // Check if token was transferred
+    const tokens = await fetchToken(student2Wallet, contractAddress, "receive");
+    expect(tokens.length).toBeGreaterThan(1);
   }, 30000);
 
   it("should set user name and get user name", async () => {

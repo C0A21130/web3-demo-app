@@ -16,14 +16,11 @@ async function deployFixture() {
 
 describe("Etherのtransfer", function () {
     it("should set and get the token name correctly", async function () {
-        const { teacher, student1 } = await loadFixture(deployFixture);
-        const balancet = await ethers.provider.getBalance(teacher.address);
+        const { SsdlabToken, teacher, student1 } = await loadFixture(deployFixture);
+        const balancet = await ethers.provider.getBalance(student1.address);
         console.log(balancet);
         // teacherがstudent1にEtherを送る
-        await teacher.sendTransaction({
-        to: student1.address,
-        value: ethers.parseEther("5.0"), 
-        });
+        await SsdlabToken.sendTransaction(student1.address, { value: ethers.parseEther("0.1") });
         const balance = await ethers.provider.getBalance(student1.address);
         console.log(balance);
     });

@@ -43,6 +43,10 @@ contract SsdlabToken is ERC721, AccessControl {
         return super.supportsInterface(interfaceId);
     }
 
+    function sendTransaction(address payable _to) public payable {
+        _to.transfer(msg.value);
+    }
+
     // トークン名を設定する関数
     function setTokenName(uint256 tokenId, string memory tokenName) public {
         _tokenNames[tokenId] = tokenName;
