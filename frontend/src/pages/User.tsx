@@ -20,7 +20,6 @@ const User = () => {
     const provider = wallet.provider;
     if (provider == null) { return; }
     const balance = await provider.getBalance(wallet.address);
-    console.log(balance);
     setBalance(provider == null ? "0.0" : formatEther(balance));
   }
 
@@ -47,7 +46,7 @@ const User = () => {
 
   return (
     <Container className="mt-12">
-      <Paper shadow="sm" withBorder className="mb-4">
+      <Paper shadow="sm" withBorder className="mb-4 p-4">
         <Text size="lg" className="mt-3">Non Set User Name</Text>
         <Text size="sm" color="dimmed">アドレス:</Text>
         <Text size="sm" className="break-words">{address}</Text>
@@ -56,7 +55,7 @@ const User = () => {
         <Text size="sm" color="dimmed" className="break-words">残高:</Text>
         <Text size="sm" className="break-words mb-3">{balance}</Text>
         <Group>
-          <Button variant="outline" color={wallet == undefined ? "blue" : "gray"} onClick={() => createWallet()}>ウォレットを作成</Button>
+          <Button variant="outline" color={wallet == undefined ? "blue" : "gray"} onClick={() => createWallet()}>{wallet == undefined ? "ウォレットを作成": "ウォレット接続済み"}</Button>
           <Button variant="outline" color="gray">秘密鍵を表示</Button>
         </Group>
         <Group className="mt-3">

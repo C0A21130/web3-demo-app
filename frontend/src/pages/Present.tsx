@@ -2,6 +2,7 @@ import { useState, useContext, useEffect } from 'react';
 import { formatEther } from 'ethers';
 import { Paper, Text, TextInput, Button, Container } from '@mantine/core';
 import { walletContext } from '../App';
+import fetchTokens from '../components/fetchTokens';
 import putToken from '../components/putToken';
 import transferToken from '../components/transferToken';
 
@@ -11,6 +12,8 @@ const Present = () => {
   const [myBalance, setMyBalance] = useState('0.0');
   const [tokenName, setTokenName] = useState('');
   const [address, setAddress] = useState('');
+  const [sentContributions, setSentContributions] = useState<Token[]>([]);
+  const [receivedContributions, setReceivedContributions] = useState<Token[]>([]);
   const [wallet] = useContext(walletContext);
 
   // Present a contribution token
@@ -31,13 +34,18 @@ const Present = () => {
       if (provider == null) { return; }
       const balance = await provider.getBalance(wallet.address);
       setMyBalance(formatEther(balance));
+      // Fetch the tokens
+      const sent = await fetchTokens(wallet, contractAddress, "sent");
+      setSentContributions(sent);
+      const received = await fetchTokens(wallet, contractAddress, "receive");
+      setReceivedContributions(received);
     }
     setWalletDetails();
   }, [wallet]);
 
   return (
     <Container size="sm" className="mt-10">
-      <Paper shadow="sm" withBorder>
+      <Paper shadow="sm" withBorder className='p-4'>
         <Text size="lg" className="mt-3">My Address:</Text>
         <Text size="sm" className="break-words mb-3">{myAddress}</Text>
         <Text size="lg" className="mt-3">My Balance:</Text>
@@ -61,6 +69,26 @@ const Present = () => {
         <Button variant="filled" color="blue" fullWidth className="mt-4" onClick={() => presentToken()}>
           感謝を伝える
         </Button>
+      </Paper>
+
+      <Paper shadow="sm" withBorder className="m-4 p-4">
+        <Text size="lg" className="mt-3">送った貢献</Text>
+        {sentContributions.map((item, index) => (
+          <div key={index} className="mt-2">
+            <Text size="sm">{`${item.name} #${item.tokenId}`}</Text>
+            <Text size="sm" color="dimmed">Address: {item.owner}</Text>
+          </div>
+        ))}
+      </Paper>
+
+      <Paper shadow="sm" withBorder className="m-4 p-4">
+        <Text size="lg" className="mt-3">受け取った貢献</Text>
+        {receivedContributions.map((item, index) => (
+          <div key={index} className="mt-2">
+            <Text size="sm">{`${item.name} #${item.tokenId}`}</Text>
+            <Text size="sm" color="dimmed">Address: {item.owner}</Text>
+          </div>
+        ))}
       </Paper>
     </Container>
   );

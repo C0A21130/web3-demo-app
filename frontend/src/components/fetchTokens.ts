@@ -27,7 +27,13 @@ const fetchTokens = async (wallet: Wallet | HDNodeWallet, contractAddress: strin
 
   // Fetch the tokens
   const filter = contract.filters.Transfer(from, to, null);
-  const logs = await contract.queryFilter(filter);
+  let logs = await contract.queryFilter(filter);
+  if (level === "receive") {
+    logs = logs.filter((log) => {
+      const fromAddress = (log as EventLog).args![0];
+      return fromAddress !== "0x0000000000000000000000000000000000000000";
+    });
+  }
   tokens = await Promise.all(logs.map(async (log) => {
     const tokenId = Number((log as EventLog).args![2]);
     const owner = await contract.ownerOf(tokenId);
