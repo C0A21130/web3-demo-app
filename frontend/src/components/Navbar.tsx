@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Text, UnstyledButton, ThemeIcon } from '@mantine/core';
-import { IconHome, IconUser } from '@tabler/icons-react';
+import { IconHome, IconGift, IconUser } from '@tabler/icons-react';
 
 interface NavbarProps {
   opened: boolean;
@@ -12,6 +12,7 @@ const Navbar = (props: NavbarProps) => {
   const [active, setActive] = useState('Home');
   const menuItems = [
     { icon: <IconHome size={16} />, label: 'Home', url: "/" },
+    { icon: <IconGift size={16} />, label: 'Present', url: "/present" },
     { icon: <IconUser size={16} />, label: 'User', url: "/user" },
   ];
 
