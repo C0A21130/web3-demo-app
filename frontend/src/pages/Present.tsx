@@ -14,33 +14,43 @@ const Present = () => {
   const [address, setAddress] = useState('');
   const [sentContributions, setSentContributions] = useState<Token[]>([]);
   const [receivedContributions, setReceivedContributions] = useState<Token[]>([]);
+  const [presentStatus, setPresentStatus] = useState<"感謝を送信する" | "感謝を送信中" | "感謝を送信失敗" | "感謝を送信完了" >("感謝を送信する");
   const [wallet] = useContext(walletContext);
+
+  const updateWalletDetails = async () => {
+    // Set the address of the wallet
+    if (wallet == undefined) { return; }
+    setMyAddress(wallet.address);
+    // Get the balance of the wallet
+    const provider = wallet.provider;
+    if (provider == null) { return; }
+    const balance = await provider.getBalance(wallet.address);
+    setMyBalance(formatEther(balance));
+    // Fetch the tokens
+    const sent = await fetchTokens(wallet, contractAddress, "sent");
+    setSentContributions(sent);
+    const received = await fetchTokens(wallet, contractAddress, "receive");
+    setReceivedContributions(received);
+  }
 
   // Present a contribution token
   const presentToken = async () => {
-    if (wallet == undefined) { return; }
-    const tx = await putToken(wallet, contractAddress, tokenName);
-    const tokenId = tx.logs[0].args[2];
-    await transferToken(wallet, contractAddress, address, tokenId);
+    setPresentStatus("感謝を送信中");
+    if (wallet == undefined || presentStatus == "感謝を送信中") { return; }
+    try {
+      const tx = await putToken(wallet, contractAddress, tokenName);
+      const tokenId = tx.logs[0].args[2];
+      await transferToken(wallet, contractAddress, address, tokenId);
+      await setPresentStatus("感謝を送信完了");
+    } catch (error) {
+      console.error("Error presenting token:", error);
+      await setPresentStatus("感謝を送信失敗");
+    }
+    updateWalletDetails();
   }
 
   useEffect(() => {
-    const setWalletDetails = async () => {
-      // Set the address of the wallet
-      if (wallet == undefined) { return; }
-      setMyAddress(wallet.address);
-      // Get the balance of the wallet
-      const provider = wallet.provider;
-      if (provider == null) { return; }
-      const balance = await provider.getBalance(wallet.address);
-      setMyBalance(formatEther(balance));
-      // Fetch the tokens
-      const sent = await fetchTokens(wallet, contractAddress, "sent");
-      setSentContributions(sent);
-      const received = await fetchTokens(wallet, contractAddress, "receive");
-      setReceivedContributions(received);
-    }
-    setWalletDetails();
+    updateWalletDetails();
   }, [wallet]);
 
   return (
@@ -67,11 +77,11 @@ const Present = () => {
           className="mt-4"
         />
         <Button variant="filled" color="blue" fullWidth className="mt-4" onClick={() => presentToken()}>
-          感謝を伝える
+          {presentStatus}
         </Button>
       </Paper>
 
-      <Paper shadow="sm" withBorder className="m-4 p-4">
+      <Paper shadow="sm" withBorder className="mt-4 p-4">
         <Text size="lg" className="mt-3">送った貢献</Text>
         {sentContributions.map((item, index) => (
           <div key={index} className="mt-2">
@@ -81,7 +91,7 @@ const Present = () => {
         ))}
       </Paper>
 
-      <Paper shadow="sm" withBorder className="m-4 p-4">
+      <Paper shadow="sm" withBorder className="mt-4 p-4">
         <Text size="lg" className="mt-3">受け取った貢献</Text>
         {receivedContributions.map((item, index) => (
           <div key={index} className="mt-2">
