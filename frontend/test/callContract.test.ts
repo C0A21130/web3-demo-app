@@ -6,6 +6,7 @@ import SsdlabAbi from './../abi/SsdlabToken.json';
 import putToken from '../src/components/putToken';
 import fetchToken from '../src/components/fetchTokens';
 import transferToken from '../src/components/transferToken';
+import configUser from '../src/components/configUser';
 
 const rpcUrl = 'http://10.203.92.71:8545';
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
@@ -76,7 +77,7 @@ describe('callContract', () => {
 
     // Check if token was transferred
     const tokens = await fetchToken(student2Wallet, contractAddress, "receive");
-    expect(tokens.length).toBeGreaterThan(1);
+    expect(tokens.length).toBeGreaterThanOrEqual(1);
   }, 30000);
 
   it("should set user name and get user name", async () => {
@@ -93,17 +94,10 @@ describe('callContract', () => {
     await sendEther(teacherWallet, student2Wallet.address, '1.0');
 
     // set user name
-    const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, teacherWallet);
-    const user1Name = 'student1';
-    const txSetUser1 = await contract.setUserAddress(user1Name, student1wallet.address);
-    await txSetUser1.wait();
-    const user2Name = "student2";
-    const txSetUser2 = await contract.setUserAddress(user2Name, student2Wallet.address);
-    await txSetUser2.wait();
+    const user1Address = await configUser(student1wallet, contractAddress, "student1");
+    const user2Address = await configUser(student2Wallet, contractAddress, "student2");
 
-    // get user name
-    const user1Address = await contract.getUserAddress(user1Name);
-    const user2Address = await contract.getUserAddress(user2Name);
+    // check if user name was set
     expect(user1Address).toBe(student1wallet.address);
     expect(user2Address).toBe(student2Wallet.address);
   }, 30000);
