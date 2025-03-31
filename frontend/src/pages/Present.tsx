@@ -35,8 +35,8 @@ const Present = () => {
 
   // Present a contribution token
   const presentToken = async () => {
+    if (wallet == undefined || presentStatus != "感謝を送信する") { return; }
     setPresentStatus("感謝を送信中");
-    if (wallet == undefined || presentStatus == "感謝を送信中") { return; }
     try {
       const tx = await putToken(wallet, contractAddress, tokenName);
       const tokenId = tx.logs[0].args[2];
