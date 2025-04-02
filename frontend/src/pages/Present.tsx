@@ -35,8 +35,8 @@ const Present = () => {
 
   // Present a contribution token
   const presentToken = async () => {
+    if (wallet == undefined || presentStatus != "感謝を送信する") { return; }
     setPresentStatus("感謝を送信中");
-    if (wallet == undefined || presentStatus == "感謝を送信中") { return; }
     try {
       const tx = await putToken(wallet, contractAddress, tokenName);
       const tokenId = tx.logs[0].args[2];
@@ -69,8 +69,8 @@ const Present = () => {
           onChange={(event) => setTokenName(event.target.value)}
         />
         <TextInput
-          label="Address"
-          placeholder="送信先のアドレスを指定してください"
+          label="Address or User Name"
+          placeholder="送信先のアドレスかユーザー名を指定してください"
           required
           value={address}
           onChange={(event) => setAddress(event.target.value)}
