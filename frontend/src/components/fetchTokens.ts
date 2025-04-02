@@ -20,15 +20,15 @@ const fetchTokens = async (wallet: Wallet | HDNodeWallet, contractAddress: strin
   } else if (level === "receive") {
     from = null;
     to = wallet.address;
-  } else {
-    from = "0x0000000000000000000000000000000000000000";
+  } else if (level === "all") {
+    from = null;
     to = null;
   }
 
   // Fetch the tokens
   const filter = contract.filters.Transfer(from, to, null);
   let logs = await contract.queryFilter(filter);
-  if (level === "receive") {
+  if (level === "all" || level === "receive") {
     logs = logs.filter((log) => {
       const fromAddress = (log as EventLog).args![0];
       return fromAddress !== "0x0000000000000000000000000000000000000000";

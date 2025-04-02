@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Card, Image, Text, Group } from '@mantine/core';
+import { Card, Text, Group } from '@mantine/core';
 import { Container } from '@mantine/core';
 import { walletContext } from '../App';
 import fetchTokens from '../components/fetchTokens';
@@ -47,18 +47,14 @@ const Home = () => {
   return (
     <div className='mt-12'>
       <Container className="mt-4">
+        <Text size="xl" className="mb-4">トークン一覧</Text>
         {tokens?.map((token, index) => (
           <Card key={index} shadow="sm" padding="lg" className="mb-4">
-            <Card.Section>
-              <Image src={token} height={160} alt={token.name} />
-            </Card.Section>
             <Group style={{ marginBottom: 5, marginTop: 10 }}>
-              <Text>{token.tokenId}</Text>
+              <Text size="lg">{token.name} #{token.tokenId}</Text>
             </Group>
             <Text size="sm" style={{ lineHeight: 1.5 }}>
-              Address:
-              <br />
-              {token.owner}
+              Address: {token.owner}
             </Text>
           </Card>
         ))}
