@@ -69,8 +69,8 @@ const Present = () => {
           onChange={(event) => setTokenName(event.target.value)}
         />
         <TextInput
-          label="Address"
-          placeholder="送信先のアドレスを指定してください"
+          label="Address or User Name"
+          placeholder="送信先のアドレスかユーザー名を指定してください"
           required
           value={address}
           onChange={(event) => setAddress(event.target.value)}

@@ -1,4 +1,4 @@
-import { ethers, Wallet, HDNodeWallet, formatEther } from "ethers";
+import { ethers, Wallet, HDNodeWallet, formatEther, isAddress } from "ethers";
 import SsdlabAbi from "./../../abi/SsdlabToken.json";
 
 /**
@@ -13,6 +13,7 @@ import SsdlabAbi from "./../../abi/SsdlabToken.json";
 const transferToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, to: string, tokenId: number) => {
   const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
   const from = wallet.address;
+  let toAddress = to;
   const balance = await contract.balanceOf(from);
 
   // Check if the wallet has enough balance to mint NFT
@@ -20,9 +21,14 @@ const transferToken = async (wallet: Wallet | HDNodeWallet, contractAddress: str
     throw new Error('Insufficient balance');
   }
 
+  // transfer address to user name
+  if (!isAddress(to)) {
+    toAddress = await contract.getUserAddress(to);
+  }
+
   // Call contract to transfer NFT
   try {
-    const tx = await contract.safeTransferFrom(from, to, tokenId);
+    const tx = await contract.safeTransferFrom(from, toAddress, tokenId);
     const txReceipt = await tx.wait();
     return txReceipt;
   } catch (error) {

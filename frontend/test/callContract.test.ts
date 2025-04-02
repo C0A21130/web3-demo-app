@@ -101,4 +101,33 @@ describe('callContract', () => {
     expect(user1Address).toBe(student1wallet.address);
     expect(user2Address).toBe(student2Wallet.address);
   }, 30000);
+
+  it("should transfer token for user name", async () => {
+    // Get wallet
+    const student1wallet = await getWallet(rpcUrl, localStorage);
+    const student2Wallet = await getWallet(rpcUrl, localStorage2);
+    if (student1wallet === undefined || student2Wallet === undefined) { return; }
+
+    // send ether to student wallet
+    const provider = student1wallet.provider;
+    if (provider === null) { return; }
+    const teacherWallet = new ethers.Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
+    await sendEther(teacherWallet, student1wallet.address, '1.0');
+    await sendEther(teacherWallet, student2Wallet.address, '1.0');
+
+    // set and get user name
+    await configUser(student1wallet, contractAddress, "student1");
+    await configUser(student2Wallet, contractAddress, "student2");
+
+    // mint token
+    const txReceipt = await putToken(student1wallet, contractAddress, 'Frends Lost Token');
+
+    // transfer token
+    const tokenId = txReceipt.logs[0].args[2];
+    await transferToken(student1wallet, contractAddress, "student2", tokenId);
+
+    // check if token was transferred
+    const tokens = await fetchToken(student2Wallet, contractAddress, "receive");
+    expect(tokens.length).toBeGreaterThanOrEqual(1);
+  }, 30000);
 });
