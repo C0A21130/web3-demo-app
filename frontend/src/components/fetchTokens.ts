@@ -48,7 +48,9 @@ const fetchTokens = async (wallet: Wallet | HDNodeWallet | undefined, contractAd
     const tokenId = Number((log as EventLog).args![2]);
     const owner = await contract.ownerOf(tokenId);
     const tokenName = await contract.getTokenName(tokenId);
-    return { tokenId: tokenId, owner: owner, name: tokenName };
+    const fromAddress = (log as EventLog).args![0];
+    const toAddress = (log as EventLog).args![1];
+    return { tokenId: tokenId, owner: owner, name: tokenName, from: fromAddress, to: toAddress};
   }));
   return tokens;
 };

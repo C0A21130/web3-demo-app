@@ -39,8 +39,12 @@ const Home = () => {
               <Text size="lg">{token.name} #{token.tokenId}</Text>
             </Group>
             <Text size="sm" style={{ lineHeight: 1.5 }}>
-              Address: {token.owner}
+              トークンのオーナー: {token.owner}
             </Text>
+            <Group className='mt-4'>
+              <Text size="sm">{token.from} から</Text>
+              <Text size="sm">{token.to} へ送られました</Text>
+            </Group>
           </Card>
         ))}
       </Container>
