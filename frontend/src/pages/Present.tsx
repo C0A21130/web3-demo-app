@@ -1,13 +1,12 @@
 import { useState, useContext, useEffect } from 'react';
 import { formatEther } from 'ethers';
 import { Paper, Text, TextInput, Button, Container } from '@mantine/core';
-import { walletContext } from '../App';
+import { contractAddress, walletContext } from '../App';
 import fetchTokens from '../components/fetchTokens';
 import putToken from '../components/putToken';
 import transferToken from '../components/transferToken';
 
 const Present = () => {
-  const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
   const [myAddress, setMyAddress] = useState('0x000');
   const [myBalance, setMyBalance] = useState('0.0');
   const [tokenName, setTokenName] = useState('');

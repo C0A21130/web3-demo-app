@@ -10,6 +10,8 @@ import User from './pages/User';
 import './index.css';
 import '@mantine/core/styles.css';
 
+export const rpcUrl = "http://10.203.92.71:8545";
+export const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 export const walletContext = createContext<[Wallet | HDNodeWallet | undefined, Dispatch<SetStateAction<Wallet | HDNodeWallet | undefined>>]>([undefined, () => {}]);
 
 function App() {
