@@ -2,9 +2,9 @@
 
 ## Smart Contracts
 
-スマートコントラクトは `contracts/`ディレクトリの直下の `contracts/contracts` に配置する
-スマートコントラクトの説明を行う
-- Lock.solは初期化時に作成されるコントラクトである
+スマートコントラクトは `contracts/`ディレクトリの直下の `contracts/contracts` に配置する。
+スマートコントラクトの説明を行う。
+- Lock.solは初期化時に作成されるコントラクトである。
 - SsdlabToken.solはERC721を継承し、デモアプリで必要となるマップ機能と送金機能のコードを追加したコードである
 
 　![スマートコントラクトの関数の説明を行う](../images/class.png)
@@ -58,7 +58,7 @@ npx hardhat deploy ignition ignition/module/SsdlabToken.ts
 
 ### Start Up Blockchain
 
-Hardhatでは、仮想のブロックチェーン環境を構築することが可能である。
+[Hardhat Node](https://hardhat.org/hardhat-network/docs/overview)では、仮想のブロックチェーン環境を構築することが可能である。
 Hardhatでは仮想ブロックチェーン環境と20のアカウントが作成される。
 以下に仮想ブロックチェーン環境の起動方法を説明する。
 
