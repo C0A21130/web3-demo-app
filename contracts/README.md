@@ -51,9 +51,18 @@ npx hardhat test
 cd contracts
 ```
 
+スマートコントラクトをコンパイルする。
+```bash
+npx hardhat compile
+```
+
 別のターミナルを開いて、スマートコントラクトをデプロイする
 ```bash
-npx hardhat deploy ignition ignition/module/SsdlabToken.ts
+npx hardhat ignition deploy ignition/modules/SsdlabToken.ts --network <NETWORK_NAME>
+```
+例) 
+```bash
+npx hardhat ignition deploy ignition/modules/SsdlabToken.ts --network localhost
 ```
 
 ### Start Up Blockchain

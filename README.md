@@ -110,7 +110,7 @@ frontend/
    npm install
    ```
 
-3. スマートコントラクトもしくはフロントエンドを改造する。
+3. フロントエンドの[READMEのSet Up Start the Development Server](https://github.com/C0A21130/web3-demo-app/tree/main/frontend#set-up)を参照して、フロントエンドのテストサーバーを起動する。
 
 ## CI/CD
 
