@@ -90,7 +90,7 @@ Deployed Addresses
 SsdlabTokenModule#SsdlabToken - 0x5FbDB2315678afecb367f032d93F642f64180aa3
 SsdlabTokenModule#Test - 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
 ```
-`frontend/App.tsx`のファイルを開いてコントラクトアドレス(contractAddress)を書き換える。
+`frontend/src/App.tsx`のファイルを開いてコントラクトアドレス(contractAddress)を書き換える。
 
 別のターミナルを開いて、フロントエンドのサーバーを起動する。
 ブラウザで[http://localhost:5173](http://localhost:5173)を開いてアプリケーションを表示する。
@@ -119,3 +119,9 @@ npm run build
 ```
 
 生成されたファイルは `frontend/dist/` に配置される。
+
+## Reference
+- vite, https://ja.vite.dev/
+- ethers, https://docs.ethers.org/v6/
+- react, https://ja.react.dev/
+- mantine ui, https://ui.mantine.dev/

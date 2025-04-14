@@ -36,6 +36,49 @@ cd contracts
 npx hardhat test
 ```
 
+#### Create Test Code
+
+テストコードは `contracts/test` にTypeScriptのファイルとして作成する。
+MochaとChaiを活用してテストコードを作成する。
+
+書き方
+- it：一つのテストを記述する
+    ```ts
+    it("テスト名", function() {
+      // テストを記述
+    })
+    ```
+- describe：テストを複数記述する
+    ```ts
+    describe("テスト名", function() {
+      it("テスト1", function() {
+        // テストを記述
+      })
+
+      it("テスト2", function() {
+        // テストを記述
+      })
+    })
+    ```
+- toBe：オブジェクトの等価判定をする
+    ```ts
+    expect("ABC").toBe("ABC") // True
+    expect("ABC").toBe("ABD") // False
+    expect(1+1).toBe(2) // True
+    ```
+- connect：ウォレット(Wallet)やプロバイダー(Provider)、署名者(Signer)をネットワークに接続するためのメソッド。コントラクトを実行するユーザーを変更することができる。
+    ```ts
+    contract.connect(<Wallet | Provider | Signer>).method();
+    ```
+    例)
+    ```ts
+    contract.coonect(account1).safeMint(account1.address);
+    ```
+
+参考のURL
+- [TypeScriptを使用してMochaとChaiでテストを書き、nycを用いてカバレッジを取得してみた](https://dev.classmethod.jp/articles/mocha_chai_nyc_with_ts/#toc-1)
+- [Jestのexpect(matcher)を完全に理解する](https://zenn.dev/t_poyo/articles/4c47373e364718)
+
 #### 作成したテストコード
 - SsdlabToken.ts:NFTのミントと正常に発行できているかを確認する
 - TransferEther.ts:トークンを特定のアドレスに送金するテストコードである
@@ -58,7 +101,7 @@ npx hardhat compile
 
 別のターミナルを開いて、スマートコントラクトをデプロイする
 ```bash
-npx hardhat ignition deploy ignition/modules/SsdlabToken.ts --network <NETWORK_NAME>
+npx hardhat ignition deploy ignition/modules/<CONTRACT_NAME>.ts --network <NETWORK_NAME>
 ```
 例) 
 ```bash
@@ -102,7 +145,7 @@ Contract WizardではERC20、ERC721、ERC1155などのスマートコントラ�
 ### Develop Test Code
 
 - 課題1: NFTの発行
-SsdlabToken コントラクトを使用して、以下の条件を満たすテストコードを作成してください。
+自身で作成したスマートコントラクトを使用して、以下の条件を満たすテストコードを作成してください。テストコードは `contracts/test`にTypeScriptのファイルで新規作成してください。作成するファイル名はスマートコントラクトと同名であることを推奨する。
   - 問題1: NFT1の発行
   オーナー（owner）がNFTを発行する。
   - 問題 2: NFTの送信
@@ -119,3 +162,38 @@ SsdlabToken コントラクトを使用して、以下の条件を満たすテ�
   - 問題 2: NFTの送信
   AさんのNFTを Bさん に送信する。
   Bさん が受け取ったNFTの所有者であることを確認する。
+
+テストコードの書き方の例)
+```ts
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { expect } from "chai";
+import { ethers } from "hardhat";
+
+// スマートコントラクトのデプロイ
+async function deployFixture() {
+  const [owner, account1, account2] = await ethers.getSigners();
+  const contract = await ethers.deployContract("<自身で作成したコントラクト名>", ["<引数>"]);
+  return { contract, owner, account1, account2 };
+}
+
+describe("課題1", function () {
+  it("問題1", function () {
+    // オーナー（owner）がNFTを発行するテスト
+  })
+
+  it("問題2", function () {
+    // オーナーが発行したNFTを Aさん に送信するテスト
+  })
+})
+
+describe("課題2", function () {
+  it("問題1", function () {
+    // オーナー（owner）がAさんのアドレスにNFTを発行するテスト
+  })
+})
+
+```
+
+## Reference
+- ethres, https://docs.ethers.org/v6/
+- hardhat, https://hardhat.org/
