@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import { formatEther } from 'ethers';
-import { Paper, Text, TextInput, Button, Container } from '@mantine/core';
+import { Paper, Text, TextInput, Button, Container, Alert } from '@mantine/core';
 import { contractAddress, rpcUrls, rpcUrlIndexContext, walletContext } from '../App';
 import fetchTokens from '../components/fetchTokens';
 import putToken from '../components/putToken';
@@ -80,6 +80,14 @@ const Present = () => {
           {presentStatus}
         </Button>
       </Paper>
+
+      <Alert title="注意" color="red" className="mt-4" hidden={wallet != undefined}>
+        ウォレットが接続されていません。ユーザーページに移動してウォレットを接続してください。
+      </Alert>
+
+      <Alert title="注意" color="red" className="mt-4" hidden={myBalance != '0.0'}>
+        残代が不足しています。貢献を送信するには、十分なETHが必要です。
+      </Alert>
 
       <Paper shadow="sm" withBorder className="mt-4 p-4">
         <Text size="lg" className="mt-3">送った貢献</Text>

@@ -101,7 +101,6 @@ const User = () => {
         </Group>
         <Group className="mt-3">
           <Button variant="outline" color={wallet == undefined ? "blue" : "gray"} onClick={() => createWallet()}>{wallet == undefined ? "ウォレットを作成": "ウォレット接続済み"}</Button>
-          <Button variant="outline" color="gray">秘密鍵を表示</Button>
           <Button variant="outline" color={wallet == undefined ? "gray" : "blue"} onClick={() => getEther()}>{receivedEthStatus}</Button>
         </Group>
         <Flex direction="column" className="mt-6" hidden={localStorage.getItem("userName") != null || balance === "0.0"}>
