@@ -1,16 +1,17 @@
 import { useState, useEffect, useContext } from 'react';
 import { Card, Text, Group } from '@mantine/core';
 import { Container } from '@mantine/core';
-import { contractAddress, walletContext } from '../App';
+import { contractAddress, rpcUrls, rpcUrlIndexContext, walletContext } from '../App';
 import fetchTokens from '../components/fetchTokens';
 
 const Home = () => {
   const [wallet] = useContext(walletContext);
+  const [rpcUrlIndex] = useContext(rpcUrlIndexContext);
   const [tokens, setTokens] = useState<Token[]>([]);
 
   useEffect(() => {
     const getTokens = async () => {
-      const tokens = await fetchTokens(wallet, contractAddress, "all");
+      const tokens = await fetchTokens(rpcUrls[rpcUrlIndex], wallet, contractAddress, "all");
       setTokens(tokens);
     }
     getTokens();

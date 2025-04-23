@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import { formatEther } from 'ethers';
 import { Paper, Text, TextInput, Button, Container } from '@mantine/core';
-import { contractAddress, walletContext } from '../App';
+import { contractAddress, rpcUrls, rpcUrlIndexContext, walletContext } from '../App';
 import fetchTokens from '../components/fetchTokens';
 import putToken from '../components/putToken';
 import transferToken from '../components/transferToken';
@@ -14,6 +14,7 @@ const Present = () => {
   const [sentContributions, setSentContributions] = useState<Token[]>([]);
   const [receivedContributions, setReceivedContributions] = useState<Token[]>([]);
   const [presentStatus, setPresentStatus] = useState<"感謝を送信する" | "感謝を送信中" | "感謝を送信失敗" | "感謝を送信完了" >("感謝を送信する");
+  const [rpcUrlIndex] = useContext(rpcUrlIndexContext);
   const [wallet] = useContext(walletContext);
 
   const updateWalletDetails = async () => {
@@ -26,9 +27,9 @@ const Present = () => {
     const balance = await provider.getBalance(wallet.address);
     setMyBalance(formatEther(balance));
     // Fetch the tokens
-    const sent = await fetchTokens(wallet, contractAddress, "sent");
+    const sent = await fetchTokens(rpcUrls[rpcUrlIndex], wallet, contractAddress, "sent");
     setSentContributions(sent);
-    const received = await fetchTokens(wallet, contractAddress, "receive");
+    const received = await fetchTokens(rpcUrls[rpcUrlIndex], wallet, contractAddress, "receive");
     setReceivedContributions(received);
   }
 
