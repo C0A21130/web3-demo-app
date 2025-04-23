@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { formatEther, Wallet } from 'ethers';
 import { Flex, Group, Text, Paper, Container, Button, TextInput, Select } from '@mantine/core';
-import { rpcUrls, rpcUrlIndexContext, contractAddress, walletContext } from '../App';
+import { rpcUrls, rpcUrlIndexContext, contractAddress, receiveAccountPrivateKey, walletContext } from '../App';
 import getWallet from '../components/getWallet';
 import transferEther  from '../components/transferEther';
 import configUser from '../components/configUser';
@@ -39,7 +39,7 @@ const User = () => {
   const getEther = async () => {
     if (wallet == undefined || receivedEthStatus != "ETHを受け取る") { return; }
     setReceivedEthStatus("ETHを受け取り中");
-    const teacher = new Wallet('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', wallet?.provider);
+    const teacher = new Wallet(receiveAccountPrivateKey, wallet?.provider);
     const amount = '0.1';
     try {
       await transferEther(teacher, wallet.address, amount);
