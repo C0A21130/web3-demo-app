@@ -63,6 +63,15 @@
 
 ## Set Up
 
+### Config
+
+各種設定が `frontend/src/App.tsx` ファイルに記載されている。
+各自の環境に合わせて設定を変更する必要がある。
+
+- rpcUrls: 接続するJSON-RPCサーバーのURLを一つ以上記載する。
+- contractAddress: 呼び出しを先のスマートコントラクトのコントラクトアドレスを指定する。
+- receiveAccountPrivateKey: ETHを受け取る先のアカウントの秘密鍵を指定する。
+
 ### Start the Development Server
 
 ブロックチェーンを起動する。

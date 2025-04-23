@@ -28,6 +28,10 @@ NFT交換システムでは最もシンプルなNFT交換を実現する。
 - ethers.js：Ethereumブロックチェーンとのやり取りを簡単に行えるJavaScriptライブラリ。ブロックチェーンとやり取りをして、スマートコントラクトを呼び出す。
   - Wallet：ウォレット管理やトランザクション署名機能を提供する。
 
+本番環境ついては以下のリポジトリを参照する。
+- Blockchain: [Web3 Infrastructure for Blockchain](https://github.com/c0a22098ea/web3-infrastructure/tree/main/blockchain)
+- IPFS: [Web3 Infrastructure for Ipfs](https://github.com/c0a22098ea/web3-infrastructure)
+
 ## Directory Structure
 
 このプロジェクトは、スマートコントラクトとフロントエンドを組み合わせた Web3アプリケーションである。
@@ -114,8 +118,6 @@ frontend/
 
 ## CI/CD
 
-このプロジェクトではCI/CDにGitHub Actionsを使用している。設定ファイルは次の場所 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)にある。
+このプロジェクトではCI/CDにGitHub Actionsを使用している。
+設定ファイルは次の場所 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)にある。
 
-## License
-
-該当する場合は、プロジェクトのライセンスに関する詳細をここに含めます。
