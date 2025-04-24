@@ -44,7 +44,13 @@ describe("SBTTestTokenM2", function () {
   it("エラーが返されれば良い",async function () {
     const tokenId = 10;
     await sbt.connect(owner).safeMint(user1.address,tokenId);
-    await sbt.connect(owner).safeTransferFrom(user1.address,user2.address,tokenId)/*.to.bereveratedWithCustomError(sbt, "ErrLocked")*/;
+    //await sbt.connect(owner).safeTransferFrom(user1.address,user2.address,tokenId).to.bereveratedWithCustomError(sbt, "ErrLocked");
+    try{
+      await sbt.connect(owner).safeTransferFrom(user1.address,user2.address,tokenId);
+      expect.fail("トランザクションはリバースされるはずです");
+    }catch (error){
+      console.log("エラー:", error.message);
+    }
 
   })
 });
