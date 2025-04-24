@@ -44,13 +44,14 @@ abstract contract ERC5192 is ERC721, IERC5192 {
     super.safeTransferFrom(from, to, tokenId, data);
   }
 
-  function safeTransferFrom(address from, address to, uint256 tokenId)
-    public
-    override
-    checkLock
-  {
-    super.safeTransferFrom(from, to, tokenId);
-  }
+  // This function is unsupported by the ERC721 standard
+  // function safeTransferFrom(address from, address to, uint256 tokenId)
+  //   public
+  //   override
+  //   checkLock
+  // {
+  //   super.safeTransferFrom(from, to, tokenId);
+  // }
 
   function transferFrom(address from, address to, uint256 tokenId)
     public
