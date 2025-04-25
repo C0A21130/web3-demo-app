@@ -81,8 +81,8 @@ const User = () => {
   }, [wallet]);
 
   return (
-    <Container className="mt-12">
-      <Paper shadow="sm" withBorder className="mb-4 p-4">
+    <Container size="sm" className="mt-10">
+      <Paper shadow="sm" withBorder className="p-4">
         <Text size="lg" className="mt-3">{localStorage.getItem("userName")}</Text>
         <Text size="sm" color="dimmed">アドレス:</Text>
         <Text size="sm" className="break-words">{address}</Text>

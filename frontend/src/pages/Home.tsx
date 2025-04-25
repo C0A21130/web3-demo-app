@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { Card, Text, Group } from '@mantine/core';
+import { Card, Text, Group, Paper } from '@mantine/core';
 import { Container } from '@mantine/core';
 import { contractAddress, rpcUrls, rpcUrlIndexContext, walletContext } from '../App';
 import fetchTokens from '../components/fetchTokens';
@@ -20,19 +20,17 @@ const Home = () => {
   // If there are no tokens, display a message
   if(tokens.length == 0) {
     return (
-      <div className='mt-12'>
-        <Container className="mt-4">
-          <Card shadow="sm" padding="lg" className="mb-4">
-            <Text size="lg">No tokens found</Text>
-          </Card>
-        </Container>
-      </div>
+      <Container size="sm" className="mt-10">
+        <Paper shadow="sm" withBorder className='p-4'>
+          <Text size="lg">No tokens found</Text>
+        </Paper>
+      </Container>
     );
   }
 
   return (
-    <div className='mt-12'>
-      <Container className="mt-4">
+    <Container size="sm" className="mt-10">
+      <Paper shadow="sm" withBorder className='p-4'>
         <Text size="xl" className="mb-4">トークン一覧</Text>
         {tokens?.map((token, index) => (
           <Card key={index} shadow="sm" padding="lg" className="mb-4">
@@ -48,8 +46,8 @@ const Home = () => {
             </Group>
           </Card>
         ))}
-      </Container>
-    </div>
+      </Paper>
+    </Container>
   );
 };
 

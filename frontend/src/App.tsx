@@ -2,6 +2,7 @@ import { useState, createContext, Dispatch, SetStateAction } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Wallet, HDNodeWallet } from 'ethers';
 import { AppShell, MantineProvider } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import Header from './components/Header';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -17,23 +18,31 @@ export const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 export const receiveAccountPrivateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 function App() {
-  const [opened, setOpened] = useState(false);
+  const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
+  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   const [wallet, setWallet] = useState<Wallet | HDNodeWallet>();
 
   return (
     <BrowserRouter>
       <MantineProvider>
         <walletContext.Provider value={[wallet, setWallet]}>
-          <AppShell>
+          <AppShell
+            navbar={{
+              width: 200,
+              breakpoint: 'sm',
+              collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
+            }}
+            padding="md"
+          >
             <AppShell.Header>
-              <Header opened={opened} setOpened={setOpened} />
+              <Header mobileOpened={mobileOpened} desktopOpened={desktopOpened} toggleMobile={toggleMobile} toggleDesktop={toggleDesktop} />
             </AppShell.Header>
             <AppShell.Navbar className='mt-8'>
-              <Navbar opened={opened} />
+              <Navbar />
             </AppShell.Navbar>
             <AppShell.Main>
               <Routes>
-                <Route path="/" element={<Home />} />
+                <Route index path="/" element={<Home />} />
                 <Route path="/present" element={<Present />} />
                 <Route path="/user" element={<User />} />
               </Routes>
