@@ -4,7 +4,7 @@ import { Text, UnstyledButton, ThemeIcon } from '@mantine/core';
 import { IconHome, IconGift, IconUser } from '@tabler/icons-react';
 
 const Navbar = () => {
-  const [active, setActive] = useState('Home');
+  const [active, setActive] = useState('ホーム');
   const menuItems = [
     { icon: <IconHome size={16} />, label: 'ホーム', url: "/" },
     { icon: <IconGift size={16} />, label: 'プレゼント', url: "/present" },
@@ -12,7 +12,7 @@ const Navbar = () => {
   ];
 
   return (
-    <div className='w-64 h-full bg-white flex flex-col'>
+    <div className='w-64 h-full p-1 bg-white flex flex-col'>
       {menuItems.map((item) => (
         <UnstyledButton
           key={item.label}
