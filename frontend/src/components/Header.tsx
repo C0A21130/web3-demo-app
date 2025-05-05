@@ -2,18 +2,21 @@ import { Container, Text } from '@mantine/core';
 import { Burger } from '@mantine/core';
 
 interface HeaderProps {
-  opened: boolean;
-  setOpened: (opened: boolean) => void;
+  mobileOpened: boolean;
+  desktopOpened: boolean;
+  toggleMobile: () => void;
+  toggleDesktop: () => void;
 }
 
 const Header = (props: HeaderProps) => {
-  const { opened, setOpened } = props;
+  const { mobileOpened, desktopOpened, toggleMobile, toggleDesktop } = props;
 
   return (
     <header>
-      <Container className="flex justify-between items-center">
-        <Text className="w-1/6 text-blue-500 font-bold text-xl">Mantine</Text>
-        <Burger opened={opened} onClick={() => setOpened(opened ? false : true )} />
+      <Container className="flex items-center">
+        <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" />
+        <Burger opened={desktopOpened} onClick={toggleDesktop} visibleFrom="sm" size="sm" />
+        <Text className="text-blue-500 font-bold text-xl">SSDLAB DAPPS</Text>
       </Container>
     </header>
   );

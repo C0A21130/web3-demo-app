@@ -3,21 +3,16 @@ import { NavLink } from 'react-router-dom';
 import { Text, UnstyledButton, ThemeIcon } from '@mantine/core';
 import { IconHome, IconGift, IconUser } from '@tabler/icons-react';
 
-interface NavbarProps {
-  opened: boolean;
-}
-
-const Navbar = (props: NavbarProps) => {
-  const { opened } = props;
-  const [active, setActive] = useState('Home');
+const Navbar = () => {
+  const [active, setActive] = useState('ホーム');
   const menuItems = [
-    { icon: <IconHome size={16} />, label: 'Home', url: "/" },
-    { icon: <IconGift size={16} />, label: 'Present', url: "/present" },
-    { icon: <IconUser size={16} />, label: 'User', url: "/user" },
+    { icon: <IconHome size={16} />, label: 'ホーム', url: "/" },
+    { icon: <IconGift size={16} />, label: 'プレゼント', url: "/present" },
+    { icon: <IconUser size={16} />, label: 'ユーザー', url: "/user" },
   ];
 
   return (
-    <div hidden={!opened} className='w-64 h-full bg-white flex flex-col'>
+    <div className='w-64 h-full p-1 bg-white flex flex-col'>
       {menuItems.map((item) => (
         <UnstyledButton
           key={item.label}

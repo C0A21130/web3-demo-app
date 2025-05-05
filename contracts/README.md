@@ -72,7 +72,7 @@ MochaとChaiを活用してテストコードを作成する。
     ```
     例)
     ```ts
-    contract.coonect(account1).safeMint(account1.address);
+    contract.connect(account1).safeMint(account1.address);
     ```
 
 参考のURL
@@ -133,19 +133,21 @@ Contract WizardではERC20、ERC721、ERC1155などのスマートコントラ�
 
 ![Contract Wizard](../images/wizard.png)
 
-- 課題1: Contract Wizardを利用してERC721のソースコードを作成してください
+- 課題1: Contract Wizardを利用してERC721のソースコードを作成する。
   - 問題1: Contract WizardのUIを操作してERC721のソースコードを作成する。
-  必ずNFTの発行(Mint)の関数が存在するようにしてください。
+  必ずNFTの発行(Mint)の関数が存在するようにする。
 
 - 課題2: 作成したERC721をコンパイルする
-  - 問題1: Contract Wizardを利用して作成したソースコードを `cotracts/contracts` ディレクトリにコピーし、Hardhatを利用してコンパイルしてください。
+  - 問題1: Contract Wizardを利用して作成したソースコードを `cotracts/contracts` ディレクトリにコピーし、Hardhatを利用してコンパイルする。
   - 問題2: コンパイルすると `contracts/artifacts` 内にバイナリファイルやABIファイルが作成される。
-  コンパイルが成功したことを確認する
+  コンパイルが成功したことを確認する。
 
 ### Develop Test Code
 
 - 課題1: NFTの発行
-自身で作成したスマートコントラクトを使用して、以下の条件を満たすテストコードを作成してください。テストコードは `contracts/test`にTypeScriptのファイルで新規作成してください。作成するファイル名はスマートコントラクトと同名であることを推奨する。
+自身で作成したスマートコントラクトを使用して、以下の条件を満たすテストコードを作成する。
+テストコードは `contracts/test`にTypeScriptのファイルで新規作成する。
+作成するファイル名はスマートコントラクトと同名であることを推奨する。
   - 問題1: NFT1の発行
   オーナー（owner）がNFTを発行する。
   - 問題 2: NFTの送信
@@ -155,9 +157,8 @@ Contract WizardではERC20、ERC721、ERC1155などのスマートコントラ�
   Aさん が受け取ったNFTを Bさん に送信する。
   Bさん が受け取ったNFTの所有者であることを確認する。
 
-- 課題2:Aさんが発行したNFTをBさんに送信してください
-い。
-  - 問題1: NFT1の発行
+- 課題2: Aさんが発行したNFTをBさんに送信する。
+  - 問題1: NFTの発行
   オーナー（owner）がAさんのアドレスにNFTを発行する。
   - 問題 2: NFTの送信
   AさんのNFTを Bさん に送信する。

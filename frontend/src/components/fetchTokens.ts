@@ -1,14 +1,16 @@
 import { Contract, Wallet, HDNodeWallet, EventLog, JsonRpcProvider } from "ethers";
 import SsdlabAbi from "../../abi/SsdlabToken.json";
-import { rpcUrl } from "../App";
 
 /**
  * This function fetches the tokens minted by the provided wallet and contract address.
- * @param wallet 
+ * @param rpcUrl - The RPC URL to connect to the Ethereum network.
+ * @param contractAddress - The address of the contract to fetch tokens from.
+ * @param wallet - The wallet instance to use for fetching tokens. If undefined, a provider will be used.
+ * @param level - The level of tokens to fetch. It can be "all", "sent", or "receive".
  * @param contractAddress 
  * @returns
  */
-const fetchTokens = async (wallet: Wallet | HDNodeWallet | undefined, contractAddress: string, level: "all" | "sent" | "receive") => {
+const fetchTokens = async (rpcUrl: string, wallet: Wallet | HDNodeWallet | undefined, contractAddress: string, level: "all" | "sent" | "receive") => {
   let tokens: Token[] = [];
   let contract: Contract;
   let from: string | null = null;
