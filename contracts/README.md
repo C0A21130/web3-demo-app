@@ -79,34 +79,9 @@ MochaとChaiを活用してテストコードを作成する。
 - [TypeScriptを使用してMochaとChaiでテストを書き、nycを用いてカバレッジを取得してみた](https://dev.classmethod.jp/articles/mocha_chai_nyc_with_ts/#toc-1)
 - [Jestのexpect(matcher)を完全に理解する](https://zenn.dev/t_poyo/articles/4c47373e364718)
 
-#### 作成したテストコード
-- SsdlabToken.ts:NFTのミントと正常に発行できているかを確認する
-- TransferEther.ts:トークンを特定のアドレスに送金するテストコードである
-- TransferNFT.ts:NFTが正常に交換できているかを確認するテストコードである
-
-### Deploy Smart Contracts
-
-コントラクトをブロックチェーンにデプロイするには、[Hardhat Ignition](https://hardhat.org/ignition/docs/getting-started#overview)を使用する。
-
-
-ディレクトリを変更する
-```bash
-cd contracts
-```
-
-スマートコントラクトをコンパイルする。
-```bash
-npx hardhat compile
-```
-
-別のターミナルを開いて、スマートコントラクトをデプロイする
-```bash
-npx hardhat ignition deploy ignition/modules/<CONTRACT_NAME>.ts --network <NETWORK_NAME>
-```
-例) 
-```bash
-npx hardhat ignition deploy ignition/modules/SsdlabToken.ts --network localhost
-```
+- SsdlabToken.ts: NFTのミントと正常に発行できているかを確認する
+- TransferEther.ts: トークンを特定のアドレスに送金するテストコードである
+- TransferNFT.ts: NFTが正常に交換できているかを確認するテストコードである
 
 ### Start Up Blockchain
 
@@ -123,6 +98,59 @@ cd contracts
 ```bash
 npx hardhat node
 ```
+
+### Deploy Smart Contracts
+
+コントラクトをブロックチェーンにデプロイするには、[Hardhat Ignition](https://hardhat.org/ignition/docs/getting-started#overview)を使用する。
+
+
+1. ディレクトリを移動する
+    ```bash
+    cd contracts
+    ```
+
+2. スマートコントラクトをコンパイルする。
+    ```bash
+    npx hardhat compile
+    ```
+
+3. `ignition/modules/`ディレクトリ内にスマートコントラクトデプロイ用のignitionファイルを作成する。
+    例)
+    ```ts
+    // This setup uses Hardhat Ignition to manage smart contract deployments.
+    // Learn more about it at https://hardhat.org/ignition
+
+    import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+
+    const <IGNITION MODULE NAME> = buildModule("<IGNITION MODULE NAME>", (m) => {
+
+        const <CONTRACT NAME> = m.contract("<CONTRACT NAME>", []);
+
+        return { <CONTRACT NAME> };
+    });
+
+    export default <IGNITION MODULE NAME>;
+    ```
+
+4. 別のターミナルを開いて、スマートコントラクトをデプロイする
+    ```bash
+    npx hardhat ignition deploy ignition/modules/<CONTRACT_NAME>.ts --network <NETWORK_NAME>
+    ```
+    例) 
+    ```bash
+    npx hardhat ignition deploy ignition/modules/SsdlabToken.ts --network localhost
+    ```
+
+    デプロイに成功すると下記のようなログが出力されるため、コントラクトアドレスをメモする。
+    ```
+    Hardhat Ignition
+    Deploying [ <IGNITION MODULE NAME> ]
+    Batch #1
+    Executed <IGNITION MODULE NAME>#<CONTRACT NAME>
+    [ <IGNITION MODULE NAME> ] successfully deployed
+    Deployed Addresses
+    <IGNITION MODULE NAME>#<CONTRACT NAME> - <CONTRACT ADDRESS>
+    ```
 
 ## Example
 

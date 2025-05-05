@@ -76,18 +76,20 @@ frontend/
 
 ### Required Tools
 
-- Node.js (推奨バージョンについては `.nvmrc` を参照してください)
+- Node.js (推奨バージョンについては `.nvmrc` を参照する)
 - npm
-- Solidity (スマートコントラクトのバージョンについては、`./contracts/hardhat.config.ts`を参照してください。)
+- Solidity (スマートコントラクトのバージョンについては、`./contracts/hardhat.config.ts`を参照する)
 - Hardhat (v2)
 - ethers.js (v6)
 - Vite (v6)
 
 ### Installation Steps
 
+以下にアプリケーションを仮想ブロックチェーンの環境で起動する方法について説明する。
+
 0. nvmのインストール。
    すでにインストール済みの場合は次のステップに進む。
-   詳しいインストール方法は[nvmリポジトリ](https://github.com/nvm-sh/nvm)の[Installing and Updating](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)を参照する。
+   詳しいインストール方法は[nvmリポジトリのInstalling and Updating](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)を参照する。
 
    ```bash
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
@@ -102,19 +104,43 @@ frontend/
    nvm use
    ```
 
-2. npmライブラリにおける必要な依存関係をインストール。
+2. npmライブラリにおける必要な依存関係をインストールする。
 
    ```bash
    # For the contracts directory
    cd contracts
    npm install
+   ```
 
+   ```bash
    # For the frontend directory
    cd ../frontend
    npm install
    ```
 
-3. フロントエンドの[READMEのSet Up Start the Development Server](https://github.com/C0A21130/web3-demo-app/tree/main/frontend#set-up)を参照して、フロントエンドのテストサーバーを起動する。
+3. 仮想のブロックチェーンを起動する。
+   ```bash
+   cd contracts
+   npx hardhat node
+   ```
+
+4. 別のターミナルを開いて、スマートコントラクトをデプロイする。
+   ```bash
+   cd contracts
+   npx hardhat compile
+   npx hardhat ignition deploy ignition/modules/SsdlabToken.ts --network localhost
+   ```
+
+5. 別のターミナルを開いて、フロントエンドのサーバーを起動する。
+   ブラウザで[http://localhost:5173](http://localhost:5173)を開いてアプリケーションを表示する。
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+6. もし秘密鍵やユーザー名を初期化する場合は、LocalStorageを消去する。
+   ブラウザの開発者ツール(F12)を開き、Applicationタブを開きClear ALLをクリックする。
+   ![Clear Secret Key](images/clear.png)
 
 ## CI/CD
 
