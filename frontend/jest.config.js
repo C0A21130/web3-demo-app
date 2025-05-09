@@ -1,6 +1,6 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-module.exports = {
+export default {
     preset: 'ts-jest',
     testEnvironment: 'node',
-    // testMatch: ['test/?(*.)+(spec|test).ts?(x)'],
+    testMatch: ['**/?(*.)+(spec|test).[tj]s?(x)'],
 };
