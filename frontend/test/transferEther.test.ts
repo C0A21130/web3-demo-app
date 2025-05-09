@@ -2,13 +2,10 @@ import { describe, it, expect } from "@jest/globals";
 import localStorageMock from "./localStorage";
 import getWallet from '../src/components/getWallet';
 import { ethers, formatEther } from 'ethers';
-import * as Testabi from '../abi/Test.json';
 import transferEther  from '../src/components/transferEther';
 
-
-const rpcUrl = 'http://10.203.92.63:8545';
+const rpcUrl = 'http://localhost:8545';
 const ownerKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-
 
 describe('transferEther', () => {
     it('TransferEther from Teacher to Student', async () => {

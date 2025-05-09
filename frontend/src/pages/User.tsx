@@ -13,7 +13,7 @@ const User = () => {
   const [balance, setBalance] = useState<string>("0.0");
   const [userName, setUserName] = useState<string>("");
   const [receivedEthStatus, setReceivedEthStatus] = useState<"ETHを受け取る" | "ETHを受け取り中" | "ETHを受け取り完了" | "ETHの受け取りに失敗">("ETHを受け取る");
-  const [configUserStatus, setConfigUserStatus] = useState<"ユーザー名を登録する" | "ユーザー名を登録中" | "ユーザー名の登録完了" | "ユーザー名の登録に失敗">("ユーザー名を登録する");
+  const [configUserStatus, setConfigUserStatus] = useState<"ユーザー名を登録する" | "ユーザー名を登録中" | "ユーザー名の登録完了" | "ユーザー名の登録に失敗" | "すでにそのユーザー名は利用されています">("ユーザー名を登録する");
 
   // This function is called to update the wallet details(address and balance)
   const updateWalletDetails = async () => {
@@ -56,7 +56,11 @@ const User = () => {
     if (userName ==  "" || configUserStatus != "ユーザー名を登録する") { return; }
     setConfigUserStatus("ユーザー名を登録中");
     try {
-      await configUser(wallet, contractAddress, userName);
+      const userAddress = await configUser(wallet, contractAddress, userName);
+      if (userAddress == "0x0000000000000000000000000000000000000000") { // If the user address is undefined, it means the user name is already taken
+        setConfigUserStatus("すでにそのユーザー名は利用されています");
+        return;
+      }
       await localStorage.setItem("userName", userName);
       setConfigUserStatus("ユーザー名の登録完了");
     } catch (error) {
