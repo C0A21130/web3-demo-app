@@ -197,6 +197,7 @@ npm run preview
 
 - 課題1: タブを追加してNFT管理画面(UI)を作成する
     - 問題1: `frontend/src/components/Navbar.tsx`の`menuItems`を編集してNFTの管理画面へ移行するための画面をメニューに追加する。
+        加えて'frontend/src/App.tsx'のルーティング(Routes)設定を編集する。
         ```ts
         const menuItems = [
             { icon: <IconHome size={16} />, label: 'Home', url: "/" },
