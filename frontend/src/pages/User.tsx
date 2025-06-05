@@ -12,7 +12,7 @@ const User = () => {
   const [address, setAddress] = useState<string>("0x0");
   const [balance, setBalance] = useState<string>("0.0");
   const [userName, setUserName] = useState<string>("");
-  const [receivedEthStatus, setReceivedEthStatus] = useState<"ETHを受け取る" | "ETHを受け取り中" | "ETHを受け取り完了" | "ETHの受け取りに失敗">("ETHを受け取る");
+  const [receivedEthStatus, setReceivedEthStatus] = useState<"ETHを受け取る" | "ETHを受け取り中" | "ETHを受け取り完了" | "ETHの受け取りに失敗" | "ETHの残高は十分です">("ETHを受け取る");
   const [configUserStatus, setConfigUserStatus] = useState<"ユーザー名を登録する" | "ユーザー名を登録中" | "ユーザー名の登録完了" | "ユーザー名の登録に失敗" | "すでにそのユーザー名は利用されています">("ユーザー名を登録する");
 
   // This function is called to update the wallet details(address and balance)
@@ -40,10 +40,14 @@ const User = () => {
     if (wallet == undefined || receivedEthStatus != "ETHを受け取る") { return; }
     setReceivedEthStatus("ETHを受け取り中");
     const teacher = new Wallet(receiveAccountPrivateKey, wallet?.provider);
-    const amount = '0.1';
+    const amount = 0.1;
     try {
-      await transferEther(teacher, wallet.address, amount);
-      setReceivedEthStatus("ETHを受け取り完了");
+      const resultMessage = await transferEther(teacher, wallet, amount);
+      if (resultMessage === "残高は十分です") {
+        setReceivedEthStatus("ETHの残高は十分です");
+      } else {
+        setReceivedEthStatus("ETHを受け取り完了");
+      }
     } catch (error) {
       console.error("Error transferring ether:", error);
       setReceivedEthStatus("ETHの受け取りに失敗");
