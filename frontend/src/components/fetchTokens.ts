@@ -7,17 +7,23 @@ import SsdlabAbi from "../../abi/SsdlabToken.json";
  * @param contractAddress - The address of the contract to fetch tokens from.
  * @param wallet - The wallet instance to use for fetching tokens. If undefined, a provider will be used.
  * @param level - The level of tokens to fetch. It can be "all", "sent", or "receive".
- * @param contractAddress 
- * @returns
+ * @returns Tokens - An array of tokens with their details.
  */
-const fetchTokens = async (rpcUrl: string, wallet: Wallet | HDNodeWallet | undefined, contractAddress: string, level: "all" | "sent" | "receive") => {
+const fetchTokens = async (rpcUrl: string, wallet: Wallet | HDNodeWallet | undefined, contractAddress: string, level: "all" | "sent" | "receive"): Promise<Token[]> => {
   let tokens: Token[] = [];
   let contract: Contract;
   let from: string | null = null;
   let to: string | null = null;
 
   if (wallet == undefined) {
-    const provider = new JsonRpcProvider(rpcUrl);
+    let provider: JsonRpcProvider;
+    try {
+      provider = new JsonRpcProvider(rpcUrl);
+      await provider.getNetwork(); // Check if the RPC URL is valid
+    } catch (error) {
+      console.error("Error creating provider:", error);
+      return [{tokenId: -1, owner: "", name: "", from: "", to: ""}]; // Return empty array if provider creation fails
+    } 
     contract = new Contract(contractAddress, SsdlabAbi.abi, provider);
   } else {
     contract = new Contract(contractAddress, SsdlabAbi.abi, wallet);

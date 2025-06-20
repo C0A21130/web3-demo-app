@@ -17,12 +17,23 @@ const Home = () => {
     getTokens();
   }, []);
 
+  // If the wallet is not connected, display a message
+  if (tokens.length == 1 && tokens[0].tokenId == -1) {
+    return (
+      <Container size="sm" className="mt-10">
+        <Paper shadow="sm" withBorder className='p-4'>
+          <Text size="lg">ユーザー画面からRPC URLを変更してください</Text>
+        </Paper>
+      </Container>
+    );
+  }
+
   // If there are no tokens, display a message
   if(tokens.length == 0) {
     return (
       <Container size="sm" className="mt-10">
         <Paper shadow="sm" withBorder className='p-4'>
-          <Text size="lg">No tokens found</Text>
+          <Text size="lg">トークンが未発行です</Text>
         </Paper>
       </Container>
     );

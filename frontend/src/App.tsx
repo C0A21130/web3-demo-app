@@ -27,29 +27,31 @@ function App() {
     <BrowserRouter>
       <MantineProvider>
         <walletContext.Provider value={[wallet, setWallet]}>
-          <AppShell
-            navbar={{
-              width: 200,
-              breakpoint: 'sm',
-              collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
-            }}
-            padding="md"
-          >
-            <AppShell.Header>
-              <Header mobileOpened={mobileOpened} desktopOpened={desktopOpened} toggleMobile={toggleMobile} toggleDesktop={toggleDesktop} />
-            </AppShell.Header>
-            <AppShell.Navbar className='mt-8'>
-              <Navbar />
-            </AppShell.Navbar>
-            <AppShell.Main>
-              <Routes>
-                <Route index path="/" element={<Home />} />
-                <Route path="/present" element={<Present />} />
-                <Route path="/user" element={<User />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AppShell.Main>
-          </AppShell>
+          <rpcUrlIndexContext.Provider value={useState(0)}>
+            <AppShell
+              navbar={{
+                width: 200,
+                breakpoint: 'sm',
+                collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
+              }}
+              padding="md"
+            >
+              <AppShell.Header>
+                <Header mobileOpened={mobileOpened} desktopOpened={desktopOpened} toggleMobile={toggleMobile} toggleDesktop={toggleDesktop} />
+              </AppShell.Header>
+              <AppShell.Navbar className='mt-8'>
+                <Navbar />
+              </AppShell.Navbar>
+              <AppShell.Main>
+                <Routes>
+                  <Route index path="/" element={<Home />} />
+                  <Route path="/present" element={<Present />} />
+                  <Route path="/user" element={<User />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AppShell.Main>
+            </AppShell>
+          </rpcUrlIndexContext.Provider>
         </walletContext.Provider>
       </MantineProvider>
     </BrowserRouter>

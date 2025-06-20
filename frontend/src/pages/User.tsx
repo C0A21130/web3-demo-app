@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { formatEther, Wallet } from 'ethers';
-import { Flex, Group, Text, Paper, Container, Button, TextInput, Select } from '@mantine/core';
+import { Flex, Group, Text, Paper, Container, Button, TextInput, Select, Alert } from '@mantine/core';
 import { rpcUrls, rpcUrlIndexContext, contractAddress, receiveAccountPrivateKey, walletContext } from '../App';
 import getWallet from '../components/getWallet';
 import transferEther  from '../components/transferEther';
@@ -31,6 +31,11 @@ const User = () => {
   // This function is called when the user clicks the "ウォレットを作成" button
   const createWallet = async () => {
     const wallet = await getWallet(rpcUrls[rpcUrlIndex], localStorage);
+    if (wallet == undefined) {
+      console.error("ウォレットの作成に失敗しました");
+      setAddress("blockchainError");
+      return;
+    }
     setWallet(wallet);
     await updateWalletDetails();
   }
@@ -80,7 +85,8 @@ const User = () => {
       setRpcUrlIndex(0);
       return;
     }
-    setRpcUrlIndex(Number(value?.split("-")[1] ?? "0"));
+    const index = Number(value?.split("-")[1] ?? "0")
+    setRpcUrlIndex(index);
   }
 
   // Update the wallet details when the component mounts or when the wallet changes
@@ -103,6 +109,7 @@ const User = () => {
             label="RPC URL"
             placeholder="RPC URLを選択"
             data={Array.from({ length: rpcUrls.length }, (_, i) => (`Node-${i}`))}
+            value={`Node-${rpcUrlIndex}`}
             onChange={(value) => configRpcUrl(value)}
             className="w-1/2"
           />
@@ -124,6 +131,13 @@ const User = () => {
             <Button variant="outline" className="w-8" color="blue" onClick={() => configUserName()}>{configUserStatus}</Button>
           </Group>
         </Flex>
+
+        <Alert title="注意" color="red" className="mt-4" hidden={wallet != undefined || address == "blockchainError"}>
+          ウォレット作成ボタンを押してください
+        </Alert>
+        <Alert title="注意" color="red" className="mt-4" hidden={address != "blockchainError"}>
+          RPC URLを変更してからウォレットを作成してください
+        </Alert>
       </Paper>
     </Container>
   );
