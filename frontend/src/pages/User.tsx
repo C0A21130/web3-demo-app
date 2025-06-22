@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { formatEther, Wallet } from 'ethers';
-import { Flex, Group, Text, Paper, Container, Button, TextInput, Select } from '@mantine/core';
+import { Flex, Group, Text, Paper, Container, Button, TextInput, Select, Alert } from '@mantine/core';
 import { rpcUrls, rpcUrlIndexContext, contractAddress, receiveAccountPrivateKey, walletContext } from '../App';
 import getWallet from '../components/getWallet';
 import transferEther  from '../components/transferEther';
@@ -12,7 +12,7 @@ const User = () => {
   const [address, setAddress] = useState<string>("0x0");
   const [balance, setBalance] = useState<string>("0.0");
   const [userName, setUserName] = useState<string>("");
-  const [receivedEthStatus, setReceivedEthStatus] = useState<"ETHを受け取る" | "ETHを受け取り中" | "ETHを受け取り完了" | "ETHの受け取りに失敗">("ETHを受け取る");
+  const [receivedEthStatus, setReceivedEthStatus] = useState<"ETHを受け取る" | "ETHを受け取り中" | "ETHを受け取り完了" | "ETHの受け取りに失敗" | "ETHの残高は十分です">("ETHを受け取る");
   const [configUserStatus, setConfigUserStatus] = useState<"ユーザー名を登録する" | "ユーザー名を登録中" | "ユーザー名の登録完了" | "ユーザー名の登録に失敗" | "すでにそのユーザー名は利用されています">("ユーザー名を登録する");
 
   // This function is called to update the wallet details(address and balance)
@@ -31,6 +31,11 @@ const User = () => {
   // This function is called when the user clicks the "ウォレットを作成" button
   const createWallet = async () => {
     const wallet = await getWallet(rpcUrls[rpcUrlIndex], localStorage);
+    if (wallet == undefined) {
+      console.error("ウォレットの作成に失敗しました");
+      setAddress("blockchainError");
+      return;
+    }
     setWallet(wallet);
     await updateWalletDetails();
   }
@@ -40,10 +45,14 @@ const User = () => {
     if (wallet == undefined || receivedEthStatus != "ETHを受け取る") { return; }
     setReceivedEthStatus("ETHを受け取り中");
     const teacher = new Wallet(receiveAccountPrivateKey, wallet?.provider);
-    const amount = '0.1';
+    const amount = 0.1;
     try {
-      await transferEther(teacher, wallet.address, amount);
-      setReceivedEthStatus("ETHを受け取り完了");
+      const resultMessage = await transferEther(teacher, wallet, amount);
+      if (resultMessage === "残高は十分です") {
+        setReceivedEthStatus("ETHの残高は十分です");
+      } else {
+        setReceivedEthStatus("ETHを受け取り完了");
+      }
     } catch (error) {
       console.error("Error transferring ether:", error);
       setReceivedEthStatus("ETHの受け取りに失敗");
@@ -76,7 +85,8 @@ const User = () => {
       setRpcUrlIndex(0);
       return;
     }
-    setRpcUrlIndex(Number(value?.split("-")[1] ?? "0"));
+    const index = Number(value?.split("-")[1] ?? "0")
+    setRpcUrlIndex(index);
   }
 
   // Update the wallet details when the component mounts or when the wallet changes
@@ -99,6 +109,7 @@ const User = () => {
             label="RPC URL"
             placeholder="RPC URLを選択"
             data={Array.from({ length: rpcUrls.length }, (_, i) => (`Node-${i}`))}
+            value={`Node-${rpcUrlIndex}`}
             onChange={(value) => configRpcUrl(value)}
             className="w-1/2"
           />
@@ -120,6 +131,13 @@ const User = () => {
             <Button variant="outline" className="w-8" color="blue" onClick={() => configUserName()}>{configUserStatus}</Button>
           </Group>
         </Flex>
+
+        <Alert title="注意" color="red" className="mt-4" hidden={wallet != undefined || address == "blockchainError"}>
+          ウォレット作成ボタンを押してください
+        </Alert>
+        <Alert title="注意" color="red" className="mt-4" hidden={address != "blockchainError"}>
+          RPC URLを変更してからウォレットを作成してください
+        </Alert>
       </Paper>
     </Container>
   );

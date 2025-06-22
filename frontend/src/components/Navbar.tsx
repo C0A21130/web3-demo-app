@@ -3,7 +3,13 @@ import { NavLink } from 'react-router-dom';
 import { Text, UnstyledButton, ThemeIcon } from '@mantine/core';
 import { IconHome, IconGift, IconUser } from '@tabler/icons-react';
 
-const Navbar = () => {
+interface HeaderProps {
+  toggleMobile: () => void;
+  toggleDesktop: () => void;
+}
+
+const Navbar = (props: HeaderProps) => {
+  const { toggleMobile, toggleDesktop } = props;
   const [active, setActive] = useState('ホーム');
   const menuItems = [
     { icon: <IconHome size={16} />, label: 'ホーム', url: "/" },
@@ -16,7 +22,7 @@ const Navbar = () => {
       {menuItems.map((item) => (
         <UnstyledButton
           key={item.label}
-          onClick={() => setActive(item.label)}
+          onClick={() => {setActive(item.label); toggleMobile(); toggleDesktop();}}
           className={`flex items-center p-2 rounded-md mt-4 ${active === item.label ? 'bg-blue-50' : ''}`}
         >
           <NavLink to={item.url} className="flex items-center w-full">
