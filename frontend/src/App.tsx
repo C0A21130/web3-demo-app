@@ -40,7 +40,7 @@ function App() {
                 <Header mobileOpened={mobileOpened} desktopOpened={desktopOpened} toggleMobile={toggleMobile} toggleDesktop={toggleDesktop} />
               </AppShell.Header>
               <AppShell.Navbar className='mt-8'>
-                <Navbar />
+                <Navbar toggleMobile={toggleMobile} toggleDesktop={toggleDesktop} />
               </AppShell.Navbar>
               <AppShell.Main>
                 <Routes>

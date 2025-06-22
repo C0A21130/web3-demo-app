@@ -1,4 +1,4 @@
-import { Contract, Wallet, HDNodeWallet, EventLog, JsonRpcProvider } from "ethers";
+import { Contract, Wallet, HDNodeWallet, EventLog, JsonRpcProvider, Provider } from "ethers";
 import SsdlabAbi from "../../abi/SsdlabToken.json";
 
 /**
@@ -8,26 +8,37 @@ import SsdlabAbi from "../../abi/SsdlabToken.json";
  * @param wallet - The wallet instance to use for fetching tokens. If undefined, a provider will be used.
  * @param level - The level of tokens to fetch. It can be "all", "sent", or "receive".
  * @returns Tokens - An array of tokens with their details.
+ * @returns number - A status code indicating the result of the operation.
  */
-const fetchTokens = async (rpcUrl: string, wallet: Wallet | HDNodeWallet | undefined, contractAddress: string, level: "all" | "sent" | "receive"): Promise<Token[]> => {
+const fetchTokens = async (rpcUrl: string, wallet: Wallet | HDNodeWallet | undefined, contractAddress: string, level: "all" | "sent" | "receive"): Promise<[Token[], number]> => {
   let tokens: Token[] = [];
   let contract: Contract;
   let from: string | null = null;
   let to: string | null = null;
+  let provider: JsonRpcProvider | Provider;
 
-  if (wallet == undefined) {
-    let provider: JsonRpcProvider;
+  if (wallet == undefined || wallet.provider == undefined) {
+    // Create a provider if wallet is undefined
     try {
       provider = new JsonRpcProvider(rpcUrl);
       await provider.getNetwork(); // Check if the RPC URL is valid
     } catch (error) {
       console.error("Error creating provider:", error);
-      return [{tokenId: -1, owner: "", name: "", from: "", to: ""}]; // Return empty array if provider creation fails
+      return [[], -1]; // Return empty array if provider creation fails
     } 
-    contract = new Contract(contractAddress, SsdlabAbi.abi, provider);
   } else {
-    contract = new Contract(contractAddress, SsdlabAbi.abi, wallet);
+    provider = wallet.provider;
   }
+
+  // Check if the contract address is valid
+  const code = await provider.getCode(contractAddress);
+  if (code === "0x") {
+    console.error("Contract not found at the provided address:", contractAddress);
+    return [[], -2]; // Return empty array if contract not found
+  }
+
+  // Create a contract instance
+  contract = new Contract(contractAddress, SsdlabAbi.abi, provider);
 
   // Set the from and to addresses
   if (level === "all" || wallet === undefined) {
@@ -60,7 +71,7 @@ const fetchTokens = async (rpcUrl: string, wallet: Wallet | HDNodeWallet | undef
     const toAddress = (log as EventLog).args![1];
     return { tokenId: tokenId, owner: owner, name: tokenName, from: fromAddress, to: toAddress};
   }));
-  return tokens;
+  return [tokens, 0];
 };
 
 export default fetchTokens;
