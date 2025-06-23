@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Present from './pages/Present';
 import NotFound from './pages/NotFound';
+import Score from './pages/Score';
 import User from './pages/User';
 import './index.css';
 import '@mantine/core/styles.css';
@@ -46,6 +47,7 @@ function App() {
                 <Routes>
                   <Route index path="/" element={<Home />} />
                   <Route path="/present" element={<Present />} />
+                  <Route path="/score" element={<Score />} />
                   <Route path="/user" element={<User />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
