@@ -88,26 +88,27 @@ const Score = () => {
           />
         </Group>
         <Text size='sm'>Contract Address List</Text>
-        <List className="mt-2" size="sm" spacing="xs">
+        <List type="ordered" className="mt-2" size="sm" spacing="xs">
           <List.Item>0xAAa87514287CF537fD600BFFdd2e2d65A3A73C3D [https://testnets.opensea.io/ja/collection/zombie-eth] 433</List.Item>
           <List.Item>0x32F4866B63CaDeD01058540Cff9Bb1fcC05E1cb7 [https://testnets.opensea.io/ja/collection/pokemonpackv1-2] 172</List.Item>
           <List.Item>0xF49af2D8DcaAc24035A2b35429873E4beeB6001E [https://testnets.opensea.io/ja/collection/dreamstack-7] 1</List.Item>
           <List.Item>0x76B50696B8EFFCA6Ee6Da7F6471110F334536321 [https://testnets.opensea.io/ja/collection/foundry-course-nft-6] 203</List.Item>
           <List.Item>0x6dBccC65133635D27AE56B7E3586b6e810d92082 [https://testnets.opensea.io/ja/collection/daffy-panda-ganging-up-1] 756</List.Item>
           <List.Item>0x0D48C738959d5a16108b475a8d0e98d9620BdEB8 [https://testnets.opensea.io/ja/collection/degenz-apes-club] 148</List.Item>
+          <List.Item>0x50cA110B20FebEF46647c9bd68cAF848c56d9d03 [ありがトークン] 100</List.Item>
         </List>
         {transferLogs.length > 0 && (
           <div className="mt-6">
-            <Text size="lg" className="mb-3">Transfer Logs</Text>
+            <Text size="lg" className="mb-3">Transfer Logs 【Log Count {transferLogs.length}】</Text>
             <Table striped highlightOnHover>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>From</Table.Th>
                   <Table.Th>To</Table.Th>
                   <Table.Th>Token ID</Table.Th>
-                  <Table.Th>Block Number</Table.Th>
-                  <Table.Th>Gas Price (Gwei)</Table.Th>
-                  <Table.Th>Gas Used (Gwei)</Table.Th>
+                  <Table.Th>Block</Table.Th>
+                  <Table.Th>Gas Price</Table.Th>
+                  <Table.Th>Gas Used</Table.Th>
                   <Table.Th>Tx Hash</Table.Th>
                 </Table.Tr>
               </Table.Thead>
@@ -122,8 +123,8 @@ const Score = () => {
                     </Table.Td>
                     <Table.Td>{log.tokenId}</Table.Td>
                     <Table.Td>{log.blockNumber}</Table.Td>
-                    <Table.Td>{log.gasPrice?.toFixed(4) || 'N/A'}</Table.Td>
-                    <Table.Td>{log.gasUsed?.toFixed(4) || 'N/A'}</Table.Td>
+                    <Table.Td>{log.gasPrice?.toFixed(6) || 'N/A'}</Table.Td>
+                    <Table.Td>{log.gasUsed?.toFixed(6) || 'N/A'}</Table.Td>
                     <Table.Td className="text-xs">
                       <a
                         href={`https://sepolia.etherscan.io/tx/${log.txHash}`}
