@@ -16,4 +16,5 @@ interface TransferLog {
   gasPrice: number;
   gasUsed: number;
   txHash: string;
+  tokenURI: string;
 }

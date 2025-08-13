@@ -11,14 +11,16 @@ const postTransferLogs = async (contractAddress: string, transferLogs: TransferL
     return {
       from_address: log.fromAddress,
       to_address: log.toAddress,
-      token_id: Number(log.tokenId),
-      block_number: log.blockNumber || 0,
-      gas_price: log.gasPrice || 0,
-      gas_used: log.gasUsed || 0,
+      token_id: log.tokenId.toString(), // 文字列として送信
+      block_number: log.blockNumber,
+      contract_address: contractAddress,
+      gas_price: log.gasPrice,
+      gas_used: log.gasUsed,
       transaction_hash: log.txHash,
+      token_uri: log.tokenURI,
     };
   });
-  console.log("送信するログ:", requestTransferLogs);
+  console.log("送信するログの0番目:", requestTransferLogs[0]);
 
   // ログを送信する
   try {
