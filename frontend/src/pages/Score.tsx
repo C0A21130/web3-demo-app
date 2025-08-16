@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { BrowserProvider } from 'ethers';
+import { Wallet, JsonRpcSigner, BrowserProvider } from 'ethers';
 import { Group, Text, Paper, Container, Button, Table, TextInput} from '@mantine/core';
-import fetchLogs from '../components/fetchLogs';
+import fetchTransferLogs from '../components/fetchTransferLogs';
 import postTransferLogs from '../components/postTransferLogs';
-import { Wallet } from 'ethers';
-import { JsonRpcSigner } from 'ethers';
 
 declare global {
   interface Window {
@@ -40,7 +38,8 @@ const Score = () => {
       return;
     }
     setFetchStatus("ログ取得中");
-    const logs = await fetchLogs(contractAddress, wallet);
+    setTransferLogs([]);
+    const logs = await fetchTransferLogs(contractAddress, wallet);
     if (logs.length === 0) {
       console.error("ログが取得できませんでした");
       setFetchStatus("ログ取得エラー");
@@ -54,6 +53,11 @@ const Score = () => {
   const clickPostLogs = async () => {
     if (wallet == undefined) {
       console.error("ウォレットが接続されていません");
+      return;
+    }
+
+    if (fetchStatus !== "ログ取得完了" || transferLogs.length === 0) {
+      console.error("ログが取得されていません");
       return;
     }
 
@@ -74,7 +78,7 @@ const Score = () => {
         <Text size="sm" color="dimmed">ウォレットアドレス:</Text>
         <Text size="sm" className="break-words">{address}</Text>
         <Group className="mt-3">
-          <Button variant="outline" color={address == "0x0" ? "blue" : "gray"} onClick={() => createWallet()}>{address == "0x0" ? "ウォレットを作成" : "ウォレット接続済み"}</Button>
+          <Button variant="outline" color={address == "0x0" ? "blue" : "gray"} onClick={() => createWallet()}>{address == "0x0" ? "ウォレットを接続する" : "ウォレット接続済み"}</Button>
           <Button variant="outline" color={Wallet == undefined ? "gray" : "blue"} onClick={() => clickFetchLogs()}>{fetchStatus}</Button>
           <Button variant="outline" color={transferLogs.length > 1 ? "blue" : "gray"} onClick={() => clickPostLogs()}>{postStatus}</Button>
         </Group>
@@ -96,10 +100,9 @@ const Score = () => {
                   <Table.Th>From</Table.Th>
                   <Table.Th>To</Table.Th>
                   <Table.Th>Token ID</Table.Th>
-                  <Table.Th>Block</Table.Th>
                   <Table.Th>Gas Price</Table.Th>
                   <Table.Th>Gas Used</Table.Th>
-                  <Table.Th>Tx Hash</Table.Th>
+                  <Table.Th>TokenURI</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -112,17 +115,11 @@ const Score = () => {
                       {log.toAddress.substring(0, 6)}...{log.toAddress.substring(log.toAddress.length - 4)}
                     </Table.Td>
                     <Table.Td>{log.tokenId}</Table.Td>
-                    <Table.Td>{log.blockNumber}</Table.Td>
                     <Table.Td>{log.gasPrice?.toFixed(6) || 'N/A'}</Table.Td>
                     <Table.Td>{log.gasUsed?.toFixed(6) || 'N/A'}</Table.Td>
-                    <Table.Td className="text-xs">
-                      <a
-                        href={`https://sepolia.etherscan.io/tx/${log.txHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline"
-                      >
-                        {log.txHash.substring(0, 6)}...{log.txHash.substring(log.txHash.length - 4)}
+                    <Table.Td className="text-xs break-all max-w-[100px]">
+                      <a href={log.tokenURI} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                        {log.tokenURI.substring(0, 6)}...{log.tokenURI.substring(log.tokenURI.length - 4)}
                       </a>
                     </Table.Td>
                   </Table.Tr>

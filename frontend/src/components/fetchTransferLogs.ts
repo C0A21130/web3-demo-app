@@ -1,18 +1,20 @@
 import { Contract, JsonRpcSigner, formatUnits, TransactionReceipt, Log, EventLog } from "ethers";
 import SsdlabAbi from "../../abi/SsdlabToken.json";
 
-const fetchLogs = async (contractAddress: string, signer: JsonRpcSigner): Promise<TransferLog[]> => {
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const fetchTransferLogs = async (contractAddress: string, signer: JsonRpcSigner): Promise<TransferLog[]> => {
   const contract = new Contract(contractAddress, SsdlabAbi.abi, signer);
   let transferLog: TransferLog;
   let txReceipt: TransactionReceipt | null = null;
-  let gasPrice: number;
-  let gasUsed: number;
+  let gasPrice: number = 0.0;
+  let gasUsed: number = 0.0;
 
   // アドレスを指定しない場合は全てのログを取得する
   let logs: (Log | EventLog)[] = [];
   const latest = await signer.provider?.getBlockNumber();
   const network = await signer.provider?.getNetwork();
-  const rate = network?.chainId == 1n ? Math.floor(latest / 500) : Math.floor(latest / 50);
+  const rate = network?.chainId == 1n ? Math.floor(latest / 500) : Math.floor(latest / 100);
   
   // 一度に取得するブロック数を指定して取得する
   for (let i = 0; i < latest; i += rate) {
@@ -22,7 +24,7 @@ const fetchLogs = async (contractAddress: string, signer: JsonRpcSigner): Promis
       const batchLogs = await contract.queryFilter("Transfer", fromBlock, toBlock);
       logs = logs ? [...logs, ...batchLogs] : batchLogs;
     } catch (error) { // もしエラーが発生した場合は、一度に取得するブロックを小さくして再試行
-      const miniSize = Math.floor((toBlock - fromBlock) / 100);
+      const miniSize = Math.floor((toBlock - fromBlock) / 10);
       for (let j = fromBlock; j < toBlock; j += miniSize) {
         const batchLogs = await contract.queryFilter("Transfer", j, j + miniSize);
         logs = logs ? [...logs, ...batchLogs] : batchLogs;
@@ -32,7 +34,6 @@ const fetchLogs = async (contractAddress: string, signer: JsonRpcSigner): Promis
 
   // もしログが取得できなかった場合は空の配列を返す
   if (logs.length === 0) {
-    console.log("No logs found");
     return [];
   }
 
@@ -40,18 +41,20 @@ const fetchLogs = async (contractAddress: string, signer: JsonRpcSigner): Promis
   logs = logs.filter((log) => {
     const eventlog = log as EventLog;
     if (!eventlog.args || eventlog.args == null) {
-      return eventlog.topics?.[0] !== "0x0000000000000000000000000000000000000000";
+      return eventlog.topics[0] !== "0x0000000000000000000000000000000000000000";
     }
     return eventlog.args?.from !== "0x0000000000000000000000000000000000000000";
   });
 
-  // ログからTransferLog型に変換する
-  const transeferLogs = Promise.all(
+  // ログからガス代とTokenURIを取得してTransferLog型に変換する
+  console.log("Transforming logs...");
+  const transferLogs = Promise.all(
     logs.map(async (log) => {
       const eventlog = log as EventLog;
 
-      // ログからgas価格とガス量を取得する
+      // ログからトランザクションにおけるガス代を取得する
       txReceipt = await signer.provider?.getTransactionReceipt(log.transactionHash);
+      await delay(50); // 通信待機
       if (txReceipt == null) {
         console.error("Transaction receipt not found for:", log.transactionHash);
       } else {
@@ -59,12 +62,14 @@ const fetchLogs = async (contractAddress: string, signer: JsonRpcSigner): Promis
         gasUsed = Number(formatUnits(txReceipt.gasUsed, 'gwei'));
       }
 
-      // TransferLog型に変換する
       if (!eventlog.args || eventlog.args == null) {
         // TokenURIを取得する
         let tokenURI = "";
         try {
-          tokenURI = await contract.tokenURI(Number(eventlog?.topics[2]));
+          const tokenId = BigInt(eventlog.topics[2]);
+          if (tokenId >= 0n) {
+            tokenURI = await contract.tokenURI(tokenId);
+          }
         } catch (error) {
           console.error("Error fetching tokenURI:", error);
         }
@@ -83,9 +88,13 @@ const fetchLogs = async (contractAddress: string, signer: JsonRpcSigner): Promis
         // TokenURIを取得する
         let tokenURI = "";
         try {
-          tokenURI = await contract.tokenURI(Number(eventlog.args?.tokenId));
+          const tokenId = BigInt(eventlog.args?.tokenId);
+          if (tokenId >= 0n) {
+            tokenURI = await contract.tokenURI(tokenId);
+          }
         } catch (error) {
           console.error("Error fetching tokenURI:", error);
+          tokenURI = "";
         }
 
         transferLog = {
@@ -99,10 +108,11 @@ const fetchLogs = async (contractAddress: string, signer: JsonRpcSigner): Promis
           tokenURI: tokenURI || "",
         };
       }
+      await delay(50); // 通信待機
       return transferLog;
     })
   );
-  return transeferLogs;
+  return transferLogs;
 }
 
-export default fetchLogs;
+export default fetchTransferLogs;
