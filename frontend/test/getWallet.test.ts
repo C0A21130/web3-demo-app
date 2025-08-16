@@ -4,7 +4,7 @@ import getWallet from '../src/components/getWallet';
 import { ethers, formatUnits } from 'ethers';
 import * as Testabi from '../abi/Test.json';
 
-const rpcUrl = 'http://10.203.92.71:8545';
+const rpcUrl = 'http://localhost:8545';
 const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
 describe('getWallet', () => {
