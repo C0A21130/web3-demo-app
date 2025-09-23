@@ -1,11 +1,13 @@
 import { describe, it, expect } from "@jest/globals";
 import localStorageMock from "./localStorage";
 import getWallet from '../src/components/getWallet';
-import { ethers, formatEther } from 'ethers';
+import { Wallet, formatEther } from 'ethers';
 import transferEther from '../src/components/transferEther';
 
 const rpcUrl = 'http://localhost:8545';
 const ownerKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 describe('transferEther', () => {
     it('TransferEther from Teacher to Student', async () => {
@@ -14,10 +16,11 @@ describe('transferEther', () => {
         if (studentWallet == undefined) { return; }
         const provider = studentWallet.provider;
         if (provider == undefined) { return; }
-        const teacherWallet = new ethers.Wallet(ownerKey, provider);
+        const teacherWallet = new Wallet(ownerKey, provider);
 
         // Send ether
         const txHash = await transferEther(teacherWallet, studentWallet, 0.1);
+        await delay(500);
         const studentBalance = await provider.getBalance(studentWallet.address);
         expect(formatEther(studentBalance)).toEqual("0.1");
     });
@@ -28,14 +31,14 @@ describe('transferEther', () => {
         if (studentWallet == undefined) { return; }
         const provider = studentWallet.provider;
         if (provider == undefined) { return; }
-        const teacherWallet = new ethers.Wallet(ownerKey, provider);
+        const teacherWallet = new Wallet(ownerKey, provider);
 
         // Send ether
-        await transferEther(teacherWallet, studentWallet, 0.1);
-        const studentBalance = await provider.getBalance(studentWallet.address);
-        expect(formatEther(studentBalance)).toEqual("0.1");
-
-        const result = await transferEther(teacherWallet, studentWallet, 0.1);
+        let result = await transferEther(teacherWallet, studentWallet, 0.1);
+        const balance = await provider.getBalance(studentWallet.address);
+        expect(formatEther(balance)).toEqual("0.1");
+        await delay(500);
+        result = await transferEther(teacherWallet, studentWallet, 0.1);
         expect(result).toEqual(`残高は十分です`);
     });
 });

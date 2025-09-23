@@ -22,7 +22,7 @@ const transferEther = async (fromWallet: Wallet | HDNodeWallet, toWallet: Wallet
 
   //残高の取得と0.1ETH以下であることの確認
   const balance = await provider.getBalance(toWallet.address);
-  if (balance >= parseEther('0.1')) {
+  if (balance > parseEther('0.1')) {
     console.error('Insufficient balance in the recipient wallet:', toWallet.address);
     return "残高は十分です";
   }
