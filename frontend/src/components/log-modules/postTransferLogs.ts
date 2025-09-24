@@ -1,3 +1,4 @@
+import { scoringEndpointUrl } from "../../App";
 
 const postTransferLogs = async (contractAddress: string, transferLogs: TransferLog[]) => {
   // 送信するログが空の場合は処理を中止
@@ -24,7 +25,7 @@ const postTransferLogs = async (contractAddress: string, transferLogs: TransferL
 
   // ログを送信する
   try {
-    const response = await fetch("http://localhost:5000/logs", {
+    const response = await fetch(`${scoringEndpointUrl}/logs`, {
       method: "POST",
       headers: {
         "Accept": "application/json",
