@@ -32,6 +32,14 @@ contract SsdlabToken is ERC721, AccessControl {
         return tokenId;
     }
 
+    function safeMint(address to, string memory _tokenName, string memory _tokenURI) public returns (uint256) {
+        uint256 tokenId = safeMint(to, _tokenName);
+        _setTokenURI(tokenId, _tokenURI);
+        return tokenId;
+    }
+    
+    
+
     // The following functions are overrides required by Solidity.
 
     function supportsInterface(bytes4 interfaceId)
@@ -51,11 +59,21 @@ contract SsdlabToken is ERC721, AccessControl {
     function setTokenName(uint256 tokenId, string memory tokenName) public {
         _tokenNames[tokenId] = tokenName;
     }
+
+    // トークンURIを設定する関数
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
+    }
     
     // トークン名を取得する関数
     function getTokenName(uint256 tokenId) public view returns (string memory) {
         return _tokenNames[tokenId];
     }
+
+    // トークンURIを取得する関数
+    function getTokenURI(uint256 tokenId) public view returns (string memory) {
+        return tokenURI(tokenId);
+    }
+
 
     // 交換のトークンIDを設定する関数
     function setExchangeTokenId(uint256 tokenId, uint256 exchangeTokenId) public {
