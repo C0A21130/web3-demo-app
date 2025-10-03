@@ -1,5 +1,5 @@
 import { Contract, JsonRpcSigner, formatUnits, TransactionReceipt, Log, EventLog } from "ethers";
-import SsdlabAbi from "../../abi/SsdlabToken.json";
+import SsdlabAbi from "../../../abi/SsdlabToken.json";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

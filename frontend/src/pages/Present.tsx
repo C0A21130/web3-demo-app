@@ -28,9 +28,9 @@ const Present = () => {
     setMyBalance(formatEther(balance));
     // Fetch the tokens
     const sent = await fetchTokens(rpcUrls[rpcUrlIndex], wallet, contractAddress, "sent");
-    setSentContributions(sent);
+    setSentContributions(sent[0]);
     const received = await fetchTokens(rpcUrls[rpcUrlIndex], wallet, contractAddress, "receive");
-    setReceivedContributions(received);
+    setReceivedContributions(received[0]);
   }
 
   // Present a contribution token

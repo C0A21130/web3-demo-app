@@ -5,18 +5,20 @@
 1. Home：
     ホーム画面では、発行されたNFT(Non-Fungible Token)一覧を確認することができる。
     発行されたNFTのトークン名やオーナー、感謝を受け取ったユーザーの確認が可能である。
-    ![Home UI](../images/home.png)
+    ![Home UI](../docs/images/home.png)
 
 2. Present：
     プレゼント画面では、NFTを利用した感謝の送信を行う。
     トークン名と送信先のアドレス(もしくはユーザー名)を指定して送信する。
     まずトークンを発行し、発行されたトークンを転送することで感謝の送信を行う。
-    ![Present UI](../images/present.png)
+    ![Present UI](../docs/images/present.png)
 
 3. User：
     ユーザー画面では、ウォレットの作成やETHの受け取り、ユーザー名の登録することができる。
-    ![User UI](../images/user.png)
-
+    ![User UI](../docs/images/user.png)
+4. Score:
+    信用スコア算出のためにウォレットに接続し、NFTのTransfer logを取得する。
+    取得後のログを[Trust Scoring System](https://github.com/C0A21130/trust-score/)に送信しグラフデータベースに取引ネットワークとして構造化し記録する。
 
 ## Frontend Architecture
 
@@ -30,7 +32,7 @@
 
 以下にクラス図を示す。
 
-![Frontend](../images/frontend.png)
+![Frontend](../docs/images/frontend.png)
 
 ### Wallet
 
@@ -38,7 +40,7 @@
 ブロックチェーンに接続し、署名を行うためのモジュールであるウォレットを[ethers.jsのWallet](https://docs.ethers.org/v6/api/wallet/)クラスを用いて実装している。
 秘密鍵はシード値から生成され、ブラウザのローカルストレージに保存される。
 
-![Wallet](../images/wallet.png)
+![Wallet](../docs/images/wallet.png)
 
 ウォレットは、以下の流れで作成される。
 

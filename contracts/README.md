@@ -7,7 +7,7 @@
 - Lock.solは初期化時に作成されるコントラクトである。
 - SsdlabToken.solはERC721を継承し、デモアプリで必要となるマップ機能と送金機能のコードを追加したコードである
 
-　![スマートコントラクトの関数の説明を行う](../images/class.png)
+　![スマートコントラクトの関数の説明を行う](../docs/images/class.png)
 
   - tokenNames,userAddresses:ユーザのニックネームとユーザアドレスを紐づけることで、ユーザのニックネームをユーザアドレスとして処理することができる
   - constructor:コントラクトをデプロイする際に、管理者（teacher）と学生（student）のアドレスを設定する
@@ -159,7 +159,7 @@ npx hardhat node
 OpenZeppelinの[Contract Wizard](https://wizard.openzeppelin.com/)を基にスマートコントラクトを開発する。
 Contract WizardではERC20、ERC721、ERC1155などのスマートコントラクトの機能をUI上で組み合わせて実装することが可能である。
 
-![Contract Wizard](../images/wizard.png)
+![Contract Wizard](../docs/images/wizard.png)
 
 - 課題1: Contract Wizardを利用してERC721のソースコードを作成する。
   - 問題1: Contract WizardのUIを操作してERC721のソースコードを作成する。

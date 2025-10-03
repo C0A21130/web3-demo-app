@@ -13,13 +13,13 @@ NFT交換システムでは最もシンプルなNFT交換を実現する。
 例として自分の研究以外の活動として「研究メンバーのために論文を探してあげる」ことなどの研究の手伝いをすることがある。
 このような場合に、感謝と同時にNFTを送ることで研究室の貢献度を可視化する。
 
-![Application](images/app.png)
+![Application](/docs/images/app.png)
 
 ## System Architecture
 
 開発環境のシステム構成について紹介する。まずスマートコントラクトのソースコードを開発・テストする。ブロックチェーンの仮想環境に対して、開発したスマートコントラクトをデプロイする。デプロイしたスマートコントラクトをフロントエンドから呼び出すことで、取引が実行される。
 
-![develop environment](images/development.png)
+![develop environment](/docs/images/development.png)
 
 - Hardhat：Ethereumのスマートコントラクト開発を効率的に行うための開発環境。Solidityコードをコンパイルやスマートコントラクトコードのテストによる検証が可能である。
   - Node：スマートコントラクトを実行するための仮想ブロックチェーン環境。
@@ -140,7 +140,7 @@ frontend/
 
 6. もし秘密鍵やユーザー名を初期化する場合は、LocalStorageを消去する。
    ブラウザの開発者ツール(F12)を開き、Applicationタブを開きClear ALLをクリックする。
-   ![Clear Secret Key](images/clear.png)
+   ![Clear Secret Key](/docs/images/clear.png)
 
 ## CI/CD
 
