@@ -131,6 +131,8 @@ Solidityで次数中心性を実装する際の設計方針：
 
 ### Centrality.ts
 
+[Centrality.ts](/contracts/test/scoring/Centrality.ts)では[Centrality.sol](/contracts/contracts/scoring/Centrality.sol)の次数中心性に関するスマートコントラクトをテストする
+
 Hardhatを使用したテストの設計方針：
 
 1. **テストケース構成**
@@ -196,7 +198,50 @@ Hardhatを使用したテストの設計方針：
 
 ## Trust scoring
 
-`Scoring.sol`は信用スコアリングの値を`ERC4974`を用いて管理する
+Trust ScoringではTrust Scoring Agentによる信用スコアの登録とスマートコントラクトによる取引履歴に基づく信用スコアの算出を行う
+
+### Scoring.sol
+
+[Scoring.sol](/contracts/contracts/scoring/Scoring.sol)は`Centrality.sol`と`IERC4974.sol`を継承し、信用スコアリングシステムの中核となるスマートコントラクトである
+
+- **デュアルスコアリング**: 外部評価（Trust Score Agent）と内部評価（次数中心性）の並行管理
+- **標準準拠**: ERC4974標準に完全準拠した評価システム
+- **拡張性**: 新しいオペレーターの動的追加が可能
+- **透明性**: すべての評価操作がブロックチェーン上で追跡可能
+
+- **データ構造**
+   ```solidity
+   mapping(address => bool) private operators;    // Trust Score Agentの管理
+   mapping(address => int8) private ratings;      // Trust Score Agentによる外部評価スコア (-127 ～ 127)
+   mapping(address => int8) private scores;       // スマートコントラクトによる内部計算スコア
+   ```
+- **イベント追跡**
+   - `NewOperator`: 新しいオペレーター追加時
+   - `Rating`: スコア登録時
+   - `Removal`: スコア削除時
+
+**主要機能**
+
+1. **オペレーター(Trust Scoring Agent)管理機能**
+   - `constructor(address _operator)`: 初期オペレーター設定
+   - `setOperator(address _operator)`: 新しいTrust Score Agentの追加
+   - `onlyOperator` modifier: オペレーターのみ実行可能な関数の制御
+
+2. **外部評価管理機能（ERC4974準拠）**
+   - `rate(address _rated, int8 _rating)`: Trust Score Agentによるスコア登録
+     - 評価範囲: -127 ～ 127（int8型）
+   - `removeRating(address _removed)`: 登録済みスコアの削除
+   - `ratingOf(address _rated)`: 外部評価スコアの取得
+
+3. **内部評価算出機能**
+   - `getScore(address _user)`: 次数中心性に基づく信用スコア取得
+     - `Centrality.calculateDegreeCentrality()`を呼び出し
+     - 取引ネットワークでの接続度合いを数値化
+     - 戻り値: int8型（-128 ～ 127の範囲）
+
+### IERC4974.sol
+
+[IERC4974.sol](/contracts/contracts/scoring/IERC4974.sol)はTrust Scoring Agentが算出した信用スコアの値を`ERC4974`を用いて管理する
 
 **ERC4974**
 - Ethereumブロックチェーン上で数値評価を管理するための標準インターフェース
