@@ -6,9 +6,10 @@ import putToken from '../src/components/putToken';
 import fetchTokens from '../src/components/fetchTokens';
 import transferToken from '../src/components/transferToken';
 import configUser from '../src/components/configUser';
+import { ethers } from "ethers";
 
 const rpcUrl = 'http://localhost:8545';
-const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+const contractAddress = '0x922D6956C99E12DFeB3224DEA977D0939758A1Fe';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -38,7 +39,7 @@ describe('token', () => {
 
     // Call contract to mint NFT
     const tokenName = 'Frends Lost Token';
-    const txReceipt = await putToken(wallet, contractAddress, tokenName);
+    const txReceipt = await putToken(wallet, contractAddress, tokenName,"");
 
     // Check if token was minted
     expect(txReceipt).toBeDefined();
@@ -59,7 +60,7 @@ describe('token', () => {
     await sendEther(teacherWallet, student2Wallet.address, '1.0');
 
     // Mint token
-    const txReceipt = await putToken(student1Wallet, contractAddress, 'Frends Lost Token');
+    const txReceipt = await putToken(student1Wallet, contractAddress, 'Frends Lost Token',"");
     await delay(500);
 
     // Transfer token
@@ -106,7 +107,7 @@ describe('token', () => {
       console.error("user name is not registered");
       return;
     }
-    const txReceipt = await putToken(user1wallet, contractAddress, 'Frends Lost Token');
+    const txReceipt = await putToken(user1wallet, contractAddress, 'Frends Lost Token',"");
     await delay(500);
 
     // transfer token
@@ -125,4 +126,36 @@ describe('token', () => {
     expect(token.to).toBe(user2Address);
   }, 30000);
   
+});
+
+// IPFSを用いたNFTの発行
+describe('NftIPFS', () => {
+
+  it('should mint for token with IPFS metadata', async () => {
+    // Get wallet
+    const localStorage = localStorageMock;
+    const wallet = await getWallet(rpcUrl, localStorage);
+    if (wallet === undefined) { return; }
+    const provider = wallet.provider;
+    if (provider === null) { return; }
+
+    // Send ether to wallet
+    const teacherWallet = new Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
+    await sendEther(teacherWallet, wallet.address, '1.0');
+
+    // Call contract to mint NFT with IPFS
+    const tokenName = 'Frends Lost Token';
+    // Heliaに対応したIPFSハッシュまたはコンテンツを指定
+    const tokenURI = "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"; // IPFSハッシュのみ
+    const txReceipt = await putToken(wallet, contractAddress, tokenName, tokenURI);
+
+    // Check if token was minted with IPFS metadata
+    expect(txReceipt).toBeDefined();
+    expect(txReceipt.logs).toBeDefined();
+    expect(txReceipt.logs.length).toBeGreaterThan(0);
+    
+    // トークンが正常にミントされたかチェック
+    const tokenId = txReceipt.logs[txReceipt.logs.length - 1].args[2];
+    expect(tokenId).toBeDefined();
+  }, 60000); // IPFS処理に時間がかかる可能性があるため60秒に延長
 });

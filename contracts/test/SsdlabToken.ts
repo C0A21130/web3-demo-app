@@ -25,11 +25,7 @@ describe("TokenNameのsetとGet", function () {
         
         // student1がNFTを発行
         const tokenURI = "http://10.203.92.63:5001/api/v0/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG";
-        const tokenID= await SsdlabToken["safeMint(address,string,string)"](
-            student1.address, 
-            tokenName, 
-            tokenURI
-        );
+        const tokenID= await SsdlabToken.safeMintIPFS(student1.address,tokenName,tokenURI);
     
         // console.log(ethers.formatEther(tokenId.value));
         // tokenIdが1になっているか確認

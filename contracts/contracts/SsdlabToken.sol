@@ -32,9 +32,12 @@ contract SsdlabToken is ERC721, AccessControl {
         return tokenId;
     }
 
-    function safeMint(address to, string memory _tokenName, string memory _tokenURI) public returns (uint256) {
-        uint256 tokenId = safeMint(to, _tokenName);
+    function safeMintIPFS(address to, string memory _tokenName, string memory _tokenURI) public returns (uint256) {
+        uint256 tokenId = _nextTokenId;
+        _safeMint(to, tokenId);
+        setTokenName(tokenId, _tokenName);
         _setTokenURI(tokenId, _tokenURI);
+        _nextTokenId++;
         return tokenId;
     }
     
