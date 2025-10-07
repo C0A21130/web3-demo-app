@@ -18,3 +18,10 @@ interface TransferLog {
   txHash: string;
   tokenURI: string;
 }
+
+interface UserCredential {
+  tokenId: number;
+  userName: string;
+  address: string;
+  trustScore: number;
+}
