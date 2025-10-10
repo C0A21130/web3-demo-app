@@ -69,4 +69,13 @@ contract Scoring is Centrality, IERC4974 {
         require(_user != address(0), "Invalid user address");
         return Centrality.calculateDegreeCentrality(_user);
     }
+
+    /// 指定されたアドレスが、指定された信用スコア以上であるかどうかを確認するための関数
+    function verifyScore(address myAddress, address targetAddress) public view returns (bool) {
+        require(myAddress != address(0), "Invalid myAddress");
+        require(targetAddress != address(0), "Invalid targetAddress");
+        int8 myScore = getScore(myAddress);
+        int8 targetScore = getScore(targetAddress);
+        return myScore >= targetScore;
+    }
 }
