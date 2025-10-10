@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Paper, Text, TextInput, Button, Flex, Alert } from '@mantine/core';
 import { IconCreditCard } from '@tabler/icons-react';
 import { Wallet, HDNodeWallet } from 'ethers';
+import fetchScores from '../scoring/fetchScores';
 
 interface DisplayCredentialProps {
   hidden: boolean;
@@ -17,6 +18,8 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
 
   // 会員証の情報を取得する関数
   const initCredential = async () => {
+    if (wallet == undefined) return;
+
     // 会員証を取得する処理(TODO: 実装予定)
     const fetchCredential: UserCredential = {
       tokenId: 1,
@@ -25,8 +28,8 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
       trustScore: 0.0
     };
 
-    // 信用スコアを取得する処理(TODO: 実装予定)
-    const scores = {myScore: 85, targetScores: []};
+    // 信用スコアを取得する処理
+    const scores = await fetchScores([], wallet, contractAddress);
     fetchCredential.trustScore = scores.myScore;
 
     setCredential(fetchCredential);

@@ -1,30 +1,33 @@
+import { Wallet, HDNodeWallet } from 'ethers';
 import { Card, Button, Text, RingProgress } from '@mantine/core';
 import { useEffect } from 'react';
+import fetchScores from '../scoring/fetchScores';
 
 interface UserListProps {
+  wallet: Wallet | HDNodeWallet | undefined;
+  contractAddress: string;
   credentials: UserCredential[];
   setCredentials: React.Dispatch<React.SetStateAction<UserCredential[]>>;
   setAddress: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const UserList = (props: UserListProps) => {
-  const { credentials, setCredentials, setAddress } = props;
+  const { wallet, credentials, setCredentials, setAddress, contractAddress } = props;
 
   // SBTと信用スコアを一覧として取得する(TODO: 実装予定)
-  const fetchCredentials = (): UserCredential[] => {
+  const fetchCredentials = async (): Promise<UserCredential[]> => {
+    if (wallet == undefined) { return []; }
+
     // SBTによる会員証一覧を取得する(TODO: 実装予定)
     let newCredentials =  [
-      { tokenId: 1, userName: 'Alice', address: '0x123...abc', trustScore: 0.0 },
-      { tokenId: 2, userName: 'Bob', address: '0x456...def', trustScore: 0.0 },
-      { tokenId: 3, userName: 'Charlie', address: '0x789...ghi', trustScore: 0.0 },
+      { tokenId: 1, userName: 'Alice', address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', trustScore: 0.0 },
+      { tokenId: 2, userName: 'Bob', address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', trustScore: 0.0 },
+      { tokenId: 3, userName: 'Charlie', address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC', trustScore: 0.0 },
     ];
 
-    // 取得した会員証一覧を元に信用スコアを取得する(TODO: 実装予定)
+    // 取得した会員証一覧を元に信用スコアを取得する
     const targetAddressList = newCredentials.map(credential => credential.address);
-    const scores = {
-      myScore: 85.5,
-      targetScores: [90.0, 75.3, 60.8],
-    }
+    const scores = await fetchScores(targetAddressList, wallet, contractAddress);
 
     // 信用スコアをSBTにマージする
     newCredentials = newCredentials.map((credential, index) => ({
@@ -36,8 +39,12 @@ const UserList = (props: UserListProps) => {
   }
 
   useEffect(() => {
-    const userCredentials = fetchCredentials();
-    setCredentials(userCredentials);
+    if (credentials.length > 0) { return; } // 既に取得済みなら再取得しない
+    const initCredentials = async () => {
+      const userCredentials = await fetchCredentials();
+      setCredentials(userCredentials);
+    };
+    initCredentials();
   }, []);
 
   return (

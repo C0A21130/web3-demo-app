@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Text, UnstyledButton, ThemeIcon } from '@mantine/core';
 import { IconHome, IconGift, IconUser } from '@tabler/icons-react';
@@ -16,6 +16,15 @@ const Navbar = (props: HeaderProps) => {
     { icon: <IconGift size={16} />, label: 'プレゼント', url: "/present" },
     { icon: <IconUser size={16} />, label: 'ユーザー', url: "/user" },
   ];
+
+  useEffect(() => {
+    // 現在のURLに基づいてactiveを設定する
+    const currentPath = location.pathname;
+    const currentItem = menuItems.find(item => item.url === currentPath);
+    if (currentItem) {
+      setActive(currentItem.label);
+    }
+  }, [location.pathname]);
 
   return (
     <div className='w-64 h-full p-1 bg-white flex flex-col'>

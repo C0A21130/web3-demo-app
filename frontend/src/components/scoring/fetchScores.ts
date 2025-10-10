@@ -29,7 +29,7 @@ const fetchScores = async (targetAddressList: string[], wallet: Wallet | HDNodeW
       targetAddressList.map(
         async (address) => {
           const score = await contract.getScore(address);
-          return Number(score);
+          return Number(score) / 100;
         }
       )
     );
@@ -38,7 +38,7 @@ const fetchScores = async (targetAddressList: string[], wallet: Wallet | HDNodeW
     // int8型の値をnumberに変換
     return {
       targetScores: targetScores,
-      myScore: Number(myScore)
+      myScore: Number(myScore) / 100
     };
 
   } catch (error: any) {
