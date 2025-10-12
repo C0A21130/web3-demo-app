@@ -25,6 +25,112 @@ export interface SBTHolderListResult {
 }
 
 /**
+ * 【推奨】イベントログを使用してSBT所持者一覧を取得（高速・効率的）
+ * 
+ * @description
+ * SBTMintedイベントログを解析して全SBT情報を取得します。
+ * RPC呼び出しが1回で済むため、従来の方法より大幅に高速です。
+ * 
+ * @param provider - Ethereumプロバイダー
+ * @param contractAddress - MemberSBT_Demoコントラクトのアドレス
+ * @param fromBlock - 検索開始ブロック（デフォルト: 0）
+ * @param toBlock - 検索終了ブロック（デフォルト: 'latest'）
+ * @returns 取得結果（success, holders, error）
+ * 
+ * @example
+ * const provider = new JsonRpcProvider("http://127.0.0.1:8545");
+ * const result = await getAllSBTHoldersFromEvents(provider, contractAddress);
+ * // 100個のSBT → 従来は200回のRPC呼び出し → 今回は1回のみ！
+ */
+export const getAllSBTHoldersFromEvents = async (
+    provider: BrowserProvider | JsonRpcProvider,
+    contractAddress: string,
+    fromBlock: number | string = 0,
+    toBlock: number | string = 'latest'
+): Promise<SBTHolderListResult> => {
+    try {
+        // バリデーション
+        if (!ethers.isAddress(contractAddress)) {
+            return {
+                success: false,
+                holders: [],
+                error: '無効なコントラクトアドレスです'
+            };
+        }
+
+        if (!provider) {
+            return {
+                success: false,
+                holders: [],
+                error: 'プロバイダーが設定されていません'
+            };
+        }
+
+        // コントラクトインスタンス作成
+        const contract = new ethers.Contract(
+            contractAddress,
+            MemberSBTDemoAbi.abi,
+            provider
+        );
+
+        console.log(`📡 イベントログを取得中... (ブロック ${fromBlock} 〜 ${toBlock})`);
+
+        // SBTMintedイベントのフィルターを作成
+        const filter = contract.filters.SBTMinted();
+        
+        // イベントログを取得（1回のRPC呼び出し）
+        const events = await contract.queryFilter(filter, fromBlock, toBlock);
+
+        console.log(`📊 ${events.length} 件のSBTMintedイベントを検出しました`);
+
+        if (events.length === 0) {
+            return {
+                success: true,
+                holders: [],
+                error: null
+            };
+        }
+
+        // イベントログからSBT情報を抽出
+        const holders: SBTHolderInfo[] = events.map((event) => {
+            // EventLogにキャストしてargsにアクセス
+            const eventLog = event as ethers.EventLog;
+            const to = eventLog.args.to as string;
+            const tokenId = eventLog.args.tokenId;
+            const userName = eventLog.args.userName as string;
+
+            return {
+                tokenId: Number(tokenId),
+                owner: to,
+                userName: userName
+            };
+        });
+
+        console.log(`✅ ${holders.length} 件のSBT情報を取得しました（イベントログ使用）`);
+
+        return {
+            success: true,
+            holders,
+            error: null
+        };
+
+    } catch (error) {
+        console.error('❌ イベントログからのSBT情報取得中にエラーが発生しました:', error);
+
+        let errorMessage = 'イベントログからのSBT情報取得に失敗しました';
+        if (error instanceof Error) {
+            errorMessage = `${errorMessage}: ${error.message}`;
+        }
+
+        return {
+            success: false,
+            holders: [],
+            error: errorMessage
+        };
+    }
+};
+
+/**
  * SBT所持者一覧を取得
  * 
  * @param provider - Ethereumプロバイダー（BrowserProvider または JsonRpcProvider）
