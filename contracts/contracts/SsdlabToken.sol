@@ -4,8 +4,9 @@ pragma solidity ^0.8.28;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "./scoring/Scoring.sol";
 
-contract SsdlabToken is ERC721, AccessControl {
+contract SsdlabToken is ERC721, AccessControl, Scoring {
     bytes32 public constant TEACHER_ROLE = keccak256("TEACHER_ROLE");
     bytes32 public constant STUDENTS_ROLE = keccak256("STUDENTS_ROLE"); 
     uint256 private _nextTokenId = 0;
@@ -19,7 +20,7 @@ contract SsdlabToken is ERC721, AccessControl {
     // ウォレットアドレスのマッピング
     mapping(string => address) private _userAddresses;
 
-    constructor(address teacher, address student) ERC721("MyToken", "") {
+    constructor(address teacher, address student) ERC721("MyToken", "") Scoring(teacher) {
         _grantRole(DEFAULT_ADMIN_ROLE, teacher);
         _grantRole(STUDENTS_ROLE, student);
     }
@@ -32,12 +33,17 @@ contract SsdlabToken is ERC721, AccessControl {
         return tokenId;
     }
 
-    // The following functions are overrides required by Solidity.
+    function transferFrom(address from, address to, uint256 tokenId) public override {
+        super.transferFrom(from, to, tokenId);
+        // 取引履歴の更新
+        addEdge(from, to);
+    }
 
+    // The following functions are overrides required by Solidity.
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, AccessControl)
+        override(ERC721, AccessControl, Scoring)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

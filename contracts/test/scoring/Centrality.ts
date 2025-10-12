@@ -37,12 +37,17 @@ describe("Centrality Contract", function () {
         .to.be.revertedWith("Invalid user address");
     });
 
-    it("重複したユーザーの追加を拒否すること", async function () {
+    it("重複したユーザーの追加を無視すること", async function () {
       const { Centrality, addr1 } = await loadFixture(deployFixture);
 
       await Centrality.addVertex(addr1.address);
+      
+      // 重複追加は例外をスローせず、無視される
       await expect(Centrality.addVertex(addr1.address))
-        .to.be.revertedWith("User already exists");
+        .to.not.emit(Centrality, "UserAdded");
+      
+      // ユーザー数は1のまま
+      expect(await Centrality.getUserCount()).to.equal(1);
     });
   });
 
@@ -76,12 +81,17 @@ describe("Centrality Contract", function () {
         .to.be.revertedWith("Invalid user address");
     });
 
-    it("重複した接続を拒否すること", async function () {
+    it("重複した接続を無視すること", async function () {
       const { Centrality, addr1, addr2 } = await loadFixture(deployFixture);
 
       await Centrality.addEdge(addr1.address, addr2.address);
+      
+      // 重複接続は例外をスローせず、無視される
       await expect(Centrality.addEdge(addr1.address, addr2.address))
-        .to.be.revertedWith("Connection already exists");
+        .to.not.emit(Centrality, "ConnectionAdded");
+      
+      // 接続数は1のまま
+      expect(await Centrality.getTotalConnections()).to.equal(1);
     });
   });
 
