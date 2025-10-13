@@ -9,7 +9,7 @@ import configUser from '../src/components/configUser';
 import { ethers } from "ethers";
 
 const rpcUrl = 'http://localhost:8545';
-const contractAddress = '0x922D6956C99E12DFeB3224DEA977D0939758A1Fe';
+const contractAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -64,7 +64,7 @@ describe('token', () => {
     await delay(500);
 
     // Transfer token
-    const tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
+    const tokenId = txReceipt.logs[txReceipt.logs.length - 1].args[2];
     await transferToken(student1Wallet, contractAddress, student2Wallet.address, tokenId);
 
     // Check if token was transferred

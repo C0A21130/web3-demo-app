@@ -1,68 +1,96 @@
 import { ethers, Wallet, HDNodeWallet, formatEther } from "ethers";
 import SsdlabAbi from './../../abi/SsdlabToken.json';
 
-// Function to mint NFT
-const baseMint = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string) => {
+/**
+ * Mint a basic NFT token without IPFS metadata
+ */
+const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string) => {
     try {
         const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
         const tx = await contract.safeMint(wallet.address, tokenName);
         const txReceipt = await tx.wait();
         return txReceipt;
     } catch (error) {
-        console.error(error);
-        throw new Error('Failed to mint NFT');
+        console.error('Base minting failed:', error);
+        throw new Error(`Failed to mint base NFT: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
-// IPFS HTTP APIを直接使用してファイルをアップロード
-const uploadToIPFS = async (content: string, filename: string = 'file'): Promise<string> => {
+/**
+ * Upload a file to IPFS using Helia library
+ * @param data - File data as string or Uint8Array
+ * @param _filename - Optional filename (unused but kept for interface compatibility)
+ * @returns IPFS hash
+ */
+const uploadData = async (data: string | Uint8Array, _filename?: string): Promise<string> => {
+    // Promise.withResolvers polyfill for Node.js versions < 19.8.0
+    if (!(Promise as any).withResolvers) {
+        (Promise as any).withResolvers = function<T>() {
+            let resolve!: (value: T | PromiseLike<T>) => void;
+            let reject!: (reason?: any) => void;
+            const promise = new Promise<T>((res, rej) => {
+                resolve = res;
+                reject = rej;
+            });
+            return { promise, resolve, reject };
+        };
+    }
+
     try {
-        const formData = new FormData();
-        const blob = new Blob([content], { type: 'text/plain' });
-        formData.append('file', blob, filename);
+        // Dynamic import for Helia to avoid Jest ESM issues
+        const { createHelia } = await import('helia');
+        const { unixfs } = await import('@helia/unixfs');
         
-        // IPFS HTTP APIに直接POST
-        const response = await fetch('http://10.203.92.63:5001/api/v0/add?pin=true', {
-            method: 'POST',
-            body: formData
-        });
+        // Initialize Helia node
+        const helia = await createHelia();
+        const fs = unixfs(helia);
         
-        if (!response.ok) {
-            throw new Error(`IPFS API error: ${response.status} ${response.statusText}`);
+        let uploadData: Uint8Array;
+        
+        if (typeof data === 'string') {
+            uploadData = new TextEncoder().encode(data);
+        } else {
+            uploadData = data;
         }
         
-        const result = await response.json();
-        console.log('IPFS upload result:', result);
+        // Upload to IPFS using Helia
+        const cid = await fs.addBytes(uploadData);
         
-        return result.Hash;
+        // Stop Helia node to free resources
+        await helia.stop();
+        
+        console.log('Helia upload result:', cid.toString());
+        
+        return cid.toString();
+        
     } catch (error) {
-        console.error('IPFS upload failed:', error);
-        throw error;
+        console.error('Helia upload failed:', error);
+        throw new Error(`Failed to upload to IPFS with Helia: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
-// Function to mint NFT with IPFS using HTTP API
-const IPFSMint = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string, tokenURI: string) => {
+/**
+ * Mint an NFT token with IPFS-stored metadata using Helia
+ */
+const uploadMetadata = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string, imageURI: string) => {
     try {
-        // 1. 画像コンテンツをIPFSにアップロード
-        const imageHash = await uploadToIPFS(tokenURI, 'image.txt');
-        const imageURI = `http://10.203.92.63:8080/ipfs/${imageHash}`;
-        
+        // 1. 画像がすでにIPFSにアップロード済みと仮定し、画像のハッシュを抽出
+        const imageHash = imageURI.split('/ipfs/')[1] || imageURI;
         console.log('Image uploaded to IPFS:', imageHash);
 
         // 2. NFTメタデータを作成
         const metadata = {
             name: tokenName,
-            description: "An NFT minted via Ssdlab using IPFS HTTP API",
+            description: "An NFT minted via Ssdlab using Helia IPFS library",
             image: imageURI,
             attributes: []
         };
         
-        // 3. メタデータをIPFSにアップロード
-        const metadataHash = await uploadToIPFS(JSON.stringify(metadata, null, 2), 'metadata.json');
+        // 3. メタデータをIPFSにアップロード (Helia使用)
+        const metadataHash = await uploadData(JSON.stringify(metadata, null, 2));
         const metadataURI = `http://10.203.92.63:8080/ipfs/${metadataHash}`;
         
-        console.log('Metadata uploaded to IPFS:', metadataHash);
+        console.log('Metadata uploaded to IPFS via Helia:', metadataHash);
         console.log('Final metadata URI:', metadataURI);
 
         // 4. ブロックチェーンにmint
@@ -103,9 +131,9 @@ const putToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, 
 
     // Call contract to mint NFT
     if (tokenURI === "") {
-        return await baseMint(wallet, contractAddress, tokenName);
+        return await mintToken(wallet, contractAddress, tokenName);
     } else {
-        return await IPFSMint(wallet, contractAddress, tokenName, tokenURI);
+        return await uploadMetadata(wallet, contractAddress, tokenName, tokenURI);
     }
 };
 
