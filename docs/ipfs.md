@@ -20,25 +20,60 @@
 
 ## 機能一覧
 
-### 1. 基本NFTミント
-- IPFSメタデータなしの基本的なNFTをミント
-- 関数: `mintBaseToken`
+### 1. 統合ミント機能
 
-### 2. IPFSアップロード
-- Heliaライブラリを使用してIPFSにデータをアップロード
-- 関数: `uploadData`
-- 対応形式: `string` | `Uint8Array`
-- 戻り値: IPFSハッシュ（CID形式）
-
-### 3. IPFSメタデータ付きNFTミント
-- 画像URIからメタデータを作成してIPFSにアップロード
-- 関数: `uploadMatadata`
-
-### 4. 統合ミント機能
-- tokenURIの有無により基本ミントまたはIPFSミントを自動選択
+- IPFSへのデータアップロードやNFT発行の関数を呼び出し実行する
 - 関数: `putToken`
 
-## メタデータ構造
+```typescript
+const putToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string, file: File | null): Promise<TransactionReceipt>
+```
+
+**処理の流れ**
+
+1. 条件に合えばIPFSへデータをアップロードする処理を呼び出す
+  - 条件: 引数の`file`が`null`ではなくIPFSノードに接続できることを確認する
+  - [`uploadData`](#2-ipfs画像アップロード)関数と[`uploadMetadata`](#3-ipfsメタデータアップロード)関数を呼び出す
+2. [`mintToken`](#4-nftミント)関数を呼び出す
+  - IFPSへのアップロードを実行していれば`tokenUrl`引数に値を渡す
+
+**主要エラー**
+
+| エラー | 原因 |
+|---|---|
+| "Insufficient balance" | ウォレット残高不足 |
+| "Failed to upload to IPFS" | IPFSアップロード失敗 |
+| "Failed to mint NFT" | コントラクトエラー |
+
+### 2. IPFS画像アップロード
+
+- Heliaライブラリを使用してIPFSにコンテンツデータをアップロード
+- 関数: `uploadData`
+- 戻り値: IPFSハッシュ（CID形式）
+
+```typescript
+const uploadData = async (data: File): Promise<string>
+```
+
+**処理の流れ**
+
+1. 引数で受け取った`file`を`Uint8Array`に変換する
+2. 変換した`Uint8Array`をHeliaのunixfsモジュールを利用してアップロードする
+  - 参考: [@helia/unixfs](https://ipfs.github.io/helia/modules/_helia_unixfs.index.html)
+3. 取得したCIDを返す
+
+### 3. IPFSメタデータアップロード
+
+- 画像URIからメタデータを作成してIPFSにアップロード
+- 関数: `uploadMetadata`
+- 戻り値: IPFSハッシュ（CID形式）
+
+```typescript
+const uploadMetadata = async (tokenName: string, imageUrl: string): Promise<string>
+```
+
+**メタデータ構造**
+
 ```json
 {
   "name": "トークン名",
@@ -47,6 +82,22 @@
   "attributes": []
 }
 ```
+
+### 4. NFTミント
+
+- IPFSメタデータなしの基本的なNFTをミント
+- 関数: `mintToken`
+
+```typescript
+const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string, tokenUri?: string): Promise<TransactionReceipt>
+```
+
+**処理の流れ**
+
+1. `tokenUri`に合わせてNFTを発行するスマートコントラクトを呼び出す
+  - `tokenUri`が設定されていれば`safeMint`コントラクトを呼び出す
+  - `tokenUri`が設定されていなければ`safeMintIpfs`コントラクトを呼び出す
+2. コントラクトの処理正しく実行されていなければエラーハンドリングを実行する
 
 ## 設定情報
 
@@ -89,31 +140,6 @@ export default {
 - **基本NFTミント**: ~1秒
 - **IPFSアップロード**: ~2-4秒  
 - **メタデータ付きNFTミント**: ~4-6秒
-
-## APIリファレンス
-
-### putToken関数
-
-```typescript
-putToken(wallet: Wallet, contractAddress: string, tokenName: string, tokenURI: string)
-```
-
-| パラメータ | 型 | 必須 | 説明 |
-|---|---|---|---|
-| wallet | Wallet \| HDNodeWallet | ✓ | 署名用ウォレット |
-| contractAddress | string | ✓ | スマートコントラクトアドレス |
-| tokenName | string | ✓ | トークン名 |
-| tokenURI | string | - | IPFSハッシュまたはURI |
-
-**戻り値**: `TransactionReceipt`
-
-### 主要エラー
-
-| エラー | 原因 |
-|---|---|
-| "Insufficient balance" | ウォレット残高不足 |
-| "Failed to upload to IPFS" | IPFSアップロード失敗 |
-| "Failed to mint NFT" | コントラクトエラー |
 
 ---
 **更新日**: 2025年10月9日  
