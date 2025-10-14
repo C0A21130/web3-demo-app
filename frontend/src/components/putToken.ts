@@ -72,10 +72,13 @@ const uploadData = async (data: string | Uint8Array, _filename?: string): Promis
 /**
  * Mint an NFT token with IPFS-stored metadata using Helia
  */
-const uploadMetadata = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string, imageURI: string) => {
+const uploadMetadata = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string, imageData: string | Uint8Array) => {
     try {
-        // 1. 画像がすでにIPFSにアップロード済みと仮定し、画像のハッシュを抽出
-        const imageHash = imageURI.split('/ipfs/')[1] || imageURI;
+        // 1. 画像をIPFSにアップロード
+        console.log('Uploading image to IPFS...');
+        const imageData = "image binary data";
+        const imageHash = await uploadData(imageData);
+        const imageURI = `http://10.203.92.63:8080/ipfs/${imageHash}`;
         console.log('Image uploaded to IPFS:', imageHash);
 
         // 2. NFTメタデータを作成
@@ -87,6 +90,7 @@ const uploadMetadata = async (wallet: Wallet | HDNodeWallet, contractAddress: st
         };
         
         // 3. メタデータをIPFSにアップロード (Helia使用)
+        console.log('Uploading metadata to IPFS...');
         const metadataHash = await uploadData(JSON.stringify(metadata, null, 2));
         const metadataURI = `http://10.203.92.63:8080/ipfs/${metadataHash}`;
         
@@ -112,11 +116,11 @@ const uploadMetadata = async (wallet: Wallet | HDNodeWallet, contractAddress: st
  * @param wallet - The wallet instance (either Wallet or HDNodeWallet) used to sign the transaction.
  * @param contractAddress - The address of the smart contract to interact with.
  * @param tokenName - The name of the token to be minted.
- * @param tokenURI - The URI of the token metadata (optional, empty string for base mint).
+ * @param imageData - The image data to upload to IPFS (optional, empty string for base mint).
  * @returns The transaction receipt of the minting process.
  * @throws Will throw an error if the wallet balance is insufficient or if the minting process fails.
  */
-const putToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string, tokenURI: string = "") => {
+const putToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string, imageData: string | Uint8Array = "") => {
     // check balance of wallet
     const provider = wallet.provider;
     if (provider === null) { 
@@ -130,10 +134,10 @@ const putToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, 
     }
 
     // Call contract to mint NFT
-    if (tokenURI === "") {
+    if (imageData === "") {
         return await mintToken(wallet, contractAddress, tokenName);
     } else {
-        return await uploadMetadata(wallet, contractAddress, tokenName, tokenURI);
+        return await uploadMetadata(wallet, contractAddress, tokenName, imageData);
     }
 };
 
