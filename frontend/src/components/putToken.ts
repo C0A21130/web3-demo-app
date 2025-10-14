@@ -12,6 +12,7 @@ const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string,
         return txReceipt;
     } catch (error) {
         console.error('Base minting failed:', error);
+        await rollbackIPFS();
         throw new Error(`Failed to mint base NFT: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
@@ -65,7 +66,60 @@ const uploadData = async (data: string | Uint8Array, _filename?: string): Promis
         
     } catch (error) {
         console.error('Helia upload failed:', error);
+        await rollbackIPFS();
         throw new Error(`Failed to upload to IPFS with Helia: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
+// エラーが発生したさいにガベージコレクションを行いロールバック処理を行う関数
+const rollbackIPFS = async (): Promise<Uint8Array> => {
+    try {
+        // Dynamic import for Helia to avoid Jest ESM issues
+        const { createHelia } = await import('helia');
+        const { unixfs } = await import('@helia/unixfs');
+        
+        // Initialize Helia node
+        const helia = await createHelia();
+        const fs = unixfs(helia);
+        
+        // Remove data from IPFS using Helia
+        await helia.gc();
+        
+        // Stop Helia node to free resources
+        await helia.stop();
+        
+        console.log('Rollback completed successfully');
+
+        return new Uint8Array();
+    } catch (error) {
+        console.error('Helia rollback failed:', error);
+        await rollbackIPFS();
+        throw new Error(`Failed to rollback from IPFS with Helia: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
+
+// CIDをpinする関数
+const pinCID = async (cid: string): Promise<void> => {
+    try {
+        // Dynamic import for Helia to avoid Jest ESM issues
+        const { createHelia } = await import('helia');
+        const { CID } = await import('multiformats/cid');
+        
+        // Initialize Helia node
+        const helia = await createHelia();
+        
+        // Parse CID string to CID object
+        const cidObj = CID.parse(cid);
+        
+        // Pin the CID
+        await helia.pins.add(cidObj);
+        
+        // Stop Helia node to free resources
+        await helia.stop();
+        
+        console.log('CID pinned successfully:', cid);
+    } catch (error) {
+        console.error('Failed to pin CID:', error);
+        throw new Error(`Failed to pin CID ${cid}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
@@ -76,7 +130,6 @@ const uploadMetadata = async (wallet: Wallet | HDNodeWallet, contractAddress: st
     try {
         // 1. 画像をIPFSにアップロード
         console.log('Uploading image to IPFS...');
-        const imageData = "image binary data";
         const imageHash = await uploadData(imageData);
         const imageURI = `http://10.203.92.63:8080/ipfs/${imageHash}`;
         console.log('Image uploaded to IPFS:', imageHash);
@@ -102,10 +155,24 @@ const uploadMetadata = async (wallet: Wallet | HDNodeWallet, contractAddress: st
         const tx = await contract.safeMintIPFS(wallet.address, tokenName, metadataURI);
         const txReceipt = await tx.wait();
         
+        // 5. すべての処理が成功したらCIDをpin
+        console.log('Pinning image and metadata CIDs...');
+        await pinCID(imageHash);
+        await pinCID(metadataHash);
+        console.log('CIDs pinned successfully');
+        
         return txReceipt;
         
     } catch (error) {
         console.error('IPFS mint failed:', error);
+        
+        // ロールバック処理を実行
+        try {
+            await rollbackIPFS();
+        } catch (rollbackError) {
+            console.error('Rollback failed:', rollbackError);
+        }
+        
         throw new Error(`Failed to mint NFT with IPFS: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };

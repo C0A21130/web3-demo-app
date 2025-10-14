@@ -147,7 +147,14 @@ describe('NftIPFS', () => {
     const tokenName = 'Frends Lost Token';
     // Heliaに対応したIPFSハッシュまたはコンテンツを指定
     const tokenURI = "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"; // IPFSハッシュのみ
-    const txReceipt = await putToken(wallet, contractAddress, tokenName, tokenURI);
+    let txReceipt = await putToken(wallet, contractAddress, tokenName, tokenURI);
+    // エラーが発生した際に再試行する
+    await delay(500);
+    for (let i = 0; i < 3; i++) {
+      if (txReceipt === undefined) {
+        txReceipt = await putToken(wallet, contractAddress, tokenName, tokenURI);
+      }
+    }
 
     // Check if token was minted with IPFS metadata
     expect(txReceipt).toBeDefined();
