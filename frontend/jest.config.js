@@ -2,21 +2,16 @@
 export default {
   preset: 'ts-jest/presets/default-esm',
   extensionsToTreatAsEsm: ['.ts'],
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  },
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
+    '^.+\\.(t|j)s$': ['ts-jest', {
       useESM: true
     }]
   },
-  transformIgnorePatterns: [
-    'node_modules/(?!(helia|@helia|multiformats|uint8arrays|@libp2p|libp2p)/)'
-  ],
   testEnvironment: 'node',
-  moduleNameMapping: {
-    '^(\\.{1,2}/.*)\\.js$': '$1'
+  transformIgnorePatterns: [
+    'node_modules/(?!(ipfs-http-client|@ipld|multiformats|uint8arrays)/)'
+  ],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.[jt]s$': '$1'
   }
 };

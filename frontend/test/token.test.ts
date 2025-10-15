@@ -6,8 +6,8 @@ import putToken from '../src/components/putToken';
 import fetchTokens from '../src/components/fetchTokens';
 import transferToken from '../src/components/transferToken';
 import configUser from '../src/components/configUser';
-import { ethers } from "ethers";
 
+const ipfsApiUrl = 'http://localhost';
 const rpcUrl = 'http://localhost:8545';
 const contractAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
 
@@ -38,8 +38,8 @@ describe('token', () => {
     await sendEther(teacherWallet, wallet.address, '1.0');
 
     // Call contract to mint NFT
-    const tokenName = 'Frends Lost Token';
-    const txReceipt = await putToken(wallet, contractAddress, tokenName,"");
+    const params = { name: 'Frends Lost Token', image: null, description: null, wallet: wallet, contractAddress: contractAddress, ipfsApiUrl: null };
+    const txReceipt = await putToken(params);
 
     // Check if token was minted
     expect(txReceipt).toBeDefined();
@@ -60,7 +60,8 @@ describe('token', () => {
     await sendEther(teacherWallet, student2Wallet.address, '1.0');
 
     // Mint token
-    const txReceipt = await putToken(student1Wallet, contractAddress, 'Frends Lost Token',"");
+    const params = { name: 'Frends Lost Token', image: null, description: null, wallet: student1Wallet, contractAddress: contractAddress, ipfsApiUrl: null };
+    const txReceipt = await putToken(params);
     await delay(500);
 
     // Transfer token
@@ -107,7 +108,9 @@ describe('token', () => {
       console.error("user name is not registered");
       return;
     }
-    const txReceipt = await putToken(user1wallet, contractAddress, 'Frends Lost Token',"");
+
+    const params = { name: 'Frends Lost Token', image: null, description: null, wallet: user1wallet, contractAddress: contractAddress, ipfsApiUrl: null };
+    const txReceipt = await putToken(params);
     await delay(500);
 
     // transfer token
@@ -143,18 +146,11 @@ describe('NftIPFS', () => {
     const teacherWallet = new Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
     await sendEther(teacherWallet, wallet.address, '1.0');
 
-    // Call contract to mint NFT with IPFS
-    const tokenName = 'Frends Lost Token';
-    // Heliaに対応したIPFSハッシュまたはコンテンツを指定
-    const tokenURI = "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"; // IPFSハッシュのみ
-    let txReceipt = await putToken(wallet, contractAddress, tokenName, tokenURI);
-    // エラーが発生した際に再試行する
-    await delay(500);
-    for (let i = 0; i < 3; i++) {
-      if (txReceipt === undefined) {
-        txReceipt = await putToken(wallet, contractAddress, tokenName, tokenURI);
-      }
-    }
+    // Create a mock File object for testing
+    const imageData = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]); // PNG header bytes
+    const mockFile = new File([imageData], 'test-image.png', { type: 'image/png' });
+    const params = { name: 'Frends Lost Token', image: mockFile, description: "This is a test token with IPFS metadata", wallet: wallet, contractAddress: contractAddress, ipfsApiUrl: ipfsApiUrl };
+    const txReceipt = await putToken(params);
 
     // Check if token was minted with IPFS metadata
     expect(txReceipt).toBeDefined();
