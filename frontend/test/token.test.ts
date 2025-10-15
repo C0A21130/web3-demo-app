@@ -7,8 +7,8 @@ import fetchTokens from '../src/components/fetchTokens';
 import transferToken from '../src/components/transferToken';
 import configUser from '../src/components/configUser';
 
+const rpcUrls = ['http://localhost:8545'];
 const ipfsApiUrl = 'http://localhost';
-const rpcUrl = 'http://localhost:8545';
 const contractAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -28,7 +28,7 @@ describe('token', () => {
   it('should mint for token', async () => {
     // Get wallet
     const localStorage = localStorageMock;
-    const wallet = await getWallet(rpcUrl, localStorage);
+    const { wallet } = await getWallet(rpcUrls, localStorage);
     if (wallet === undefined) { return; }
     const provider = wallet.provider;
     if (provider === null) { return; }
@@ -48,59 +48,59 @@ describe('token', () => {
   it('should transfer token', async () => {
     const localStorage = localStorageMock;
     const localStorage2 = localStorageMock;
-    const student1Wallet = await getWallet(rpcUrl, localStorage);
-    const student2Wallet = await getWallet(rpcUrl, localStorage2);
+    const student1Wallet = await getWallet(rpcUrls, localStorage);
+    const student2Wallet = await getWallet(rpcUrls, localStorage2);
     if (student1Wallet === undefined || student2Wallet === undefined) { return; }
 
     // transfer ether to student wallet
-    const provider = student1Wallet.provider;
+    const provider = student1Wallet.wallet.provider;
     if (provider === null) { return; }
     const teacherWallet = new Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
-    await sendEther(teacherWallet, student1Wallet.address, '1.0');
-    await sendEther(teacherWallet, student2Wallet.address, '1.0');
+    await sendEther(teacherWallet, student1Wallet.wallet.address, '1.0');
+    await sendEther(teacherWallet, student2Wallet.wallet.address, '1.0');
 
     // Mint token
-    const params = { name: 'Frends Lost Token', image: null, description: null, wallet: student1Wallet, contractAddress: contractAddress, ipfsApiUrl: null };
+    const params = { name: 'Frends Lost Token', image: null, description: null, wallet: student1Wallet.wallet, contractAddress: contractAddress, ipfsApiUrl: null };
     const txReceipt = await putToken(params);
     await delay(500);
 
     // Transfer token
     const tokenId = txReceipt.logs[txReceipt.logs.length - 1].args[2];
-    await transferToken(student1Wallet, contractAddress, student2Wallet.address, tokenId);
+    await transferToken(student1Wallet.wallet, contractAddress, student2Wallet.wallet.address, tokenId);
 
     // Check if token was transferred
-    const tokens = await fetchTokens(rpcUrl, student2Wallet, contractAddress, "receive");
+    const tokens = await fetchTokens(rpcUrls[student2Wallet.rpcUrlIndex], student2Wallet.wallet, contractAddress, "receive");
     const token = tokens[0][tokens[0].length - 1];
     expect(tokens[0].length).toBeGreaterThanOrEqual(1);
     expect(token.tokenId).toBe(Number(tokenId));
-    expect(token.owner).toBe(student2Wallet.address);
+    expect(token.owner).toBe(student2Wallet.wallet.address);
     expect(token.name).toBe('Frends Lost Token');
-    expect(token.from).toBe(student1Wallet.address);
-    expect(token.to).toBe(student2Wallet.address);
+    expect(token.from).toBe(student1Wallet.wallet.address);
+    expect(token.to).toBe(student2Wallet.wallet.address);
   }, 30000);
 
   it("should transfer token for user name", async () => {
     // Get wallet
     const localStorage = localStorageMock;
     const localStorage2 = localStorageMock;
-    const user1wallet = await getWallet(rpcUrl, localStorage);
-    const user2Wallet = await getWallet(rpcUrl, localStorage2);
+    const user1wallet = await getWallet(rpcUrls, localStorage);
+    const user2Wallet = await getWallet(rpcUrls, localStorage2);
     const userName1 = `user${Math.random().toString(36).substring(2, 15)}`;
     const userName2 = `user${Math.random().toString(36).substring(2, 15)}`;
 
     if (user1wallet === undefined || user2Wallet === undefined) { return; }
 
     // send ether to student wallet
-    const provider = user1wallet.provider;
+    const provider = user1wallet.wallet.provider;
     if (provider === null) { return; }
     const teacherWallet = new Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
-    await sendEther(teacherWallet, user1wallet.address, '0.1');
-    await sendEther(teacherWallet, user2Wallet.address, '0.1');
+    await sendEther(teacherWallet, user1wallet.wallet.address, '0.1');
+    await sendEther(teacherWallet, user2Wallet.wallet.address, '0.1');
 
     // set and get user name
-    const user1Address = await configUser(user1wallet, contractAddress, userName1);
+    const user1Address = await configUser(user1wallet.wallet, contractAddress, userName1);
     await delay(500);
-    const user2Address = await configUser(user2Wallet, contractAddress, userName2);
+    const user2Address = await configUser(user2Wallet.wallet, contractAddress, userName2);
     await delay(500);
 
     // mint token
@@ -109,17 +109,17 @@ describe('token', () => {
       return;
     }
 
-    const params = { name: 'Frends Lost Token', image: null, description: null, wallet: user1wallet, contractAddress: contractAddress, ipfsApiUrl: null };
+    const params = { name: 'Frends Lost Token', image: null, description: null, wallet: user1wallet.wallet, contractAddress: contractAddress, ipfsApiUrl: null };
     const txReceipt = await putToken(params);
     await delay(500);
 
     // transfer token
     const tokenId = txReceipt.logs[0].args[2];
-    await transferToken(user1wallet, contractAddress, userName2, tokenId);
+    await transferToken(user1wallet.wallet, contractAddress, userName2, tokenId);
     await delay(500);
 
     // check if token was transferred
-    const tokens = await fetchTokens(rpcUrl, user2Wallet, contractAddress, "receive");
+    const tokens = await fetchTokens(rpcUrls[user2Wallet.rpcUrlIndex], user2Wallet.wallet, contractAddress, "receive");
     const token = tokens[0][tokens[0].length - 1];
     expect(tokens[0].length).toBeGreaterThanOrEqual(1);
     expect(token.tokenId).toBe(Number(tokenId));
@@ -137,19 +137,19 @@ describe('NftIPFS', () => {
   it('should mint for token with IPFS metadata', async () => {
     // Get wallet
     const localStorage = localStorageMock;
-    const wallet = await getWallet(rpcUrl, localStorage);
+    const wallet = await getWallet(rpcUrls, localStorage);
     if (wallet === undefined) { return; }
-    const provider = wallet.provider;
+    const provider = wallet.wallet.provider;
     if (provider === null) { return; }
 
     // Send ether to wallet
     const teacherWallet = new Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
-    await sendEther(teacherWallet, wallet.address, '1.0');
+    await sendEther(teacherWallet, wallet.wallet.address, '1.0');
 
     // Create a mock File object for testing
     const imageData = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]); // PNG header bytes
     const mockFile = new File([imageData], 'test-image.png', { type: 'image/png' });
-    const params = { name: 'Frends Lost Token', image: mockFile, description: "This is a test token with IPFS metadata", wallet: wallet, contractAddress: contractAddress, ipfsApiUrl: ipfsApiUrl };
+    const params = { name: 'Frends Lost Token', image: mockFile, description: "This is a test token with IPFS metadata", wallet: wallet.wallet, contractAddress: contractAddress, ipfsApiUrl: ipfsApiUrl };
     const txReceipt = await putToken(params);
 
     // Check if token was minted with IPFS metadata
