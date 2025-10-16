@@ -1,7 +1,8 @@
 import { useState, useContext, useEffect } from 'react';
 import { formatEther } from 'ethers';
 import { Paper, Text, TextInput, Button, Container, Alert, Flex} from '@mantine/core';
-import { contractAddress, walletContext } from '../App';
+import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import { contractAddress, walletContext, ipfsApiUrl } from '../App';
 import putToken from '../components/putToken';
 import transferToken from '../components/transferToken';
 import CreatePhoto from '../components/present/createPhoto';
@@ -11,8 +12,10 @@ const Present = () => {
   const [myAddress, setMyAddress] = useState('0x000');
   const [myBalance, setMyBalance] = useState('0.0');
   const [tokenName, setTokenName] = useState('');
-  const [address, setAddress] = useState('0x000');
+  const [description, setDescription] = useState('');
+  const [address, setAddress] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
+  const [ipfsClient, setIpfsClient] = useState<IPFSHTTPClient | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [credentials, setCredentials] = useState<UserCredential[]>([]);
   const [presentStatus, setPresentStatus] = useState<"画像作成中" | "感謝を送信する" | "感謝を送信中" | "感謝を送信失敗" | "感謝を送信完了" >("画像作成中");
@@ -29,12 +32,18 @@ const Present = () => {
     const balance = await provider.getBalance(wallet.address);
     setMyBalance(formatEther(balance));
 
-    // IPFSとの接続確認(TODO: 実装予定)
-    const connectStatus = false;
-    setConnecting(connectStatus);
-    // もしIFPSと接続できない場合は、画像作成画面を非表示にする
-    if (!connectStatus && presentStatus === "画像作成中") {
-      setPresentStatus("感謝を送信する");
+    // IPFSとの接続を確立する
+    try {
+      const client = create({ url: `${ipfsApiUrl}:5001`, timeout: 3000 });
+      await client.id();
+      setIpfsClient(client);
+      setConnecting(true);
+    } catch (error) {
+      console.error("Error connecting to IPFS");
+      setConnecting(false);
+      if (presentStatus == "画像作成中") {
+        setPresentStatus("感謝を送信する");
+      }
     }
   }
 
@@ -52,11 +61,20 @@ const Present = () => {
       if (!window.confirm("取引相手の信用スコアが不足しています。本当に取引して問題ないですか？")) { return; }
     }
 
-    // IPFSに画像をアップロードしてトークンを送信する(TODO: 実装予定)
+    // IPFSに画像をアップロードしてトークンを送信する
     if (wallet == undefined || presentStatus != "感謝を送信する") { return; }
     setPresentStatus("感謝を送信中");
     try {
-      const tx = await putToken(wallet, contractAddress, tokenName);
+      const params = {
+        wallet: wallet,
+        contractAddress: contractAddress,
+        name: tokenName,
+        description: description,
+        image: photo,
+        client: ipfsClient,
+        ipfsApiUrl: ipfsApiUrl
+      };
+      const tx = await putToken(params);
       const tokenId = tx.logs[0].args[2];
       await transferToken(wallet, contractAddress, address, tokenId);
       await setPresentStatus("感謝を送信完了");
@@ -69,7 +87,7 @@ const Present = () => {
 
   useEffect(() => {
     updateWalletDetails();
-  }, [wallet]);
+  }, []);
 
   return (
     <Container size="sm" className="mt-10">
@@ -88,6 +106,14 @@ const Present = () => {
           onChange={(event) => setTokenName(event.target.value)}
           className='mt-2'
         />
+        {connecting && <TextInput
+          label="説明"
+          placeholder="トークンの説明を記入してください"
+          required
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          className='mt-2'
+        />}
 
         {/* 画像作成画面 */}
         <CreatePhoto hidden={!connecting || presentStatus !== "画像作成中"} setPhoto={setPhoto} photo={photo} setPresentStatus={setPresentStatus} />
@@ -113,6 +139,9 @@ const Present = () => {
       </Paper>
       
       {/* アラート一覧 */}
+      <Alert title="接続中" color="yellow" className="mt-4" hidden={connecting || presentStatus != "画像作成中" || wallet == undefined}>
+        IPFSに接続中です...
+      </Alert>
       <Alert title="注意" color="red" className="mt-4" hidden={wallet != undefined}>
         ウォレットが接続されていません。ユーザーページに移動してウォレットを接続してください。
       </Alert>

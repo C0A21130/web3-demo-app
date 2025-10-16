@@ -1,5 +1,5 @@
 import { ethers, Wallet, HDNodeWallet, formatEther } from "ethers";
-import { create } from "ipfs-http-client";
+import { IPFSHTTPClient } from "ipfs-http-client";
 import SsdlabAbi from './../../abi/SsdlabToken.json';
 
 interface Params {
@@ -8,6 +8,7 @@ interface Params {
     name: string;
     description: string | null;
     image: File | null;
+    client: IPFSHTTPClient | null;
     ipfsApiUrl: string | null;
 }
 
@@ -112,10 +113,9 @@ const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string,
 //     }
 // };
 
-const uploadTokenData = async (tokenName: string, tokenImage: File | null, description: string, ipfsApiUrl: string): Promise<string> => {
+const uploadTokenData = async (tokenName: string, tokenImage: File | null, description: string, client: IPFSHTTPClient, ipfsApiUrl: string): Promise<string> => {
     let isPinned = false;
-    const client = create({ url: `${ipfsApiUrl}:5001` });
-    
+
     try {
         // 1. File オブジェクトを直接IPFSにアップロード
         if (!tokenImage) return '';
@@ -191,9 +191,8 @@ const putToken = async (param: Params) => {
         throw new Error('Insufficient balance');
     }
 
-    if (param.image !== null && param.ipfsApiUrl !== null && param.description !== null) {
-        tokenUrl = await uploadTokenData(param.name, param.image, param.description, param.ipfsApiUrl);
-        console.log('Token URL:', tokenUrl);
+    if (param.image !== null && param.client !== null && param.description !== null && param.ipfsApiUrl !== null) {
+        tokenUrl = await uploadTokenData(param.name, param.image, param.description, param.client, param.ipfsApiUrl);
     }
 
     // Call contract to mint NFT
