@@ -41,6 +41,12 @@ contract MemberSBT_Demo is ERC5192, AccessControl {
         return _nextTokenId;
     }
 
+    // 既に発行されたSBTの所有者かどうかを検証する関数
+    function verifyCredential(uint256 tokenId, address userAddress) public view returns (bool) {
+        require(_exists(tokenId), "MemberSBT: Query for nonexistent token");
+        return ownerOf(tokenId) == userAddress;
+    }
+
     function supportsInterface(bytes4 interfaceId)
         public
         view

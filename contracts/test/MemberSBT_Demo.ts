@@ -45,11 +45,21 @@ describe("MemberSBT_Demo", function () {
     });
 
     it("🚫 発行されたSBTは譲渡できない", async function () {
-        await demoSbt.connect(user1).safeMint(user1.address, "Test User 1");
-  
-        await expect(
-          demoSbt.connect(user1).transferFrom(user1.address, user2.address, 0)
-        ).to.be.revertedWithCustomError(demoSbt, 'ErrLocked');
-      });
+      await demoSbt.connect(user1).safeMint(user1.address, "Test User 1");
+
+      await expect(
+        demoSbt.connect(user1).transferFrom(user1.address, user2.address, 0)
+      ).to.be.revertedWithCustomError(demoSbt, 'ErrLocked');
+    });
+
+    it("🚫 既に発行されたSBTの所有者かどうかを検証する", async function () {
+      const userName = "Test User 1";
+      const expectedTokenId = 0;
+
+      await demoSbt.connect(user1).safeMint(user1.address, userName);
+
+      expect(await demoSbt.verifyCredential(expectedTokenId, user1.address)).to.be.true;
+      expect(await demoSbt.verifyCredential(expectedTokenId, user2.address)).to.be.false;
+    });
   });
 });

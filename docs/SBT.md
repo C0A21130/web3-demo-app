@@ -90,6 +90,7 @@ MemberSBT / MemberSBT_Demo
 | `safeMint(address to, string userName)` | MINTER_ROLE必須 | SBTを発行し、Token IDを返す | 約123,000 gas |
 | `getUserName(uint256 tokenId)` | 誰でも可能 | Token IDからユーザー名を取得 | 無料（view） |
 | `getTotalSupply()` | 誰でも可能 | 発行済みSBTの総数を取得 | 無料（view） |
+| `verifyCredential(uint256 tokenId, address userAddress)` | 誰でも可能 | 指定されたアドレスがSBTの所有者かどうかを検証 | 無料（view） |
 | `supportsInterface(bytes4 interfaceId)` | 誰でも可能 | ERC165インターフェース確認 | 無料（view） |
 
 ### 6. 権限管理
@@ -745,4 +746,4 @@ MIT License
 
 ---
 
-**最終更新日**: 2025年10月16日
+**最終更新日**: 2025年10月17日

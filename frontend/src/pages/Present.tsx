@@ -6,6 +6,7 @@ import putToken from '../components/putToken';
 import transferToken from '../components/transferToken';
 import CreatePhoto from '../components/present/createPhoto';
 import UserList from '../components/present/userList';
+import verifyCredential from '../components/credential/verifyCredential';
 
 const Present = () => {
   const [myAddress, setMyAddress] = useState('0x000');
@@ -40,8 +41,11 @@ const Present = () => {
 
   // 感謝を送信する(TODO: 実装予定)
   const presentToken = async () => {
-    // 会員証が発行されているか検証する(TOODO: SBT実装予定)
-    const isValidCredential = true;
+    if (wallet == undefined) { return; }
+    
+    // 会員証が発行されているか検証する
+    const tokenId = credentials.find(cred => cred.address.toLowerCase() === address.toLowerCase())?.tokenId;
+    const isValidCredential = await verifyCredential(wallet, credentialContractAddress, tokenId ? tokenId : -1, address);
     if (!isValidCredential) {
       if (!window.confirm("送信先のアドレスは会員証を持っていません。本当に取引して問題ないですか？")) { return; }
     }

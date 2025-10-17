@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from "@jest/globals";
 import { ethers, JsonRpcProvider } from 'ethers';
 import fetchCredential from '../src/components/credential/fetchCredential';
 import issueCredential from '../src/components/credential/issueCredential';
+import verifyCredential from '../src/components/credential/verifyCredential';
 
 const rpcUrl = 'http://127.0.0.1:8545';
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
@@ -25,18 +26,24 @@ describe('Credential API - SBT認証情報テスト', () => {
 
         try {
             await issueCredential(wallet1, contractAddress, "テストユーザー1");
+            await delay(500);
             await issueCredential(wallet1, contractAddress, "山田太郎");
+            await delay(500);
             await issueCredential(wallet2, contractAddress, "テストユーザー2");
+            await delay(500);
         } catch (error) {
             console.log('SBT発行済み、またはエラー:', error);
         }
     }, 60000);
+
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     describe('issueCredential (SBT発行)', () => {
         it('SBTを発行してUserCredentialを返す', async () => {
             const testUserName = `発行テスト_${Date.now()}`;
             
             const credential = await issueCredential(wallet1, contractAddress, testUserName);
+            await delay(500);
 
             expect(credential).toHaveProperty('tokenId');
             expect(credential).toHaveProperty('userName');
@@ -57,7 +64,9 @@ describe('Credential API - SBT認証情報テスト', () => {
             const userName2 = `連続発行2_${Date.now()}`;
             
             const cred1 = await issueCredential(wallet2, contractAddress, userName1);
+            await delay(500);
             const cred2 = await issueCredential(wallet2, contractAddress, userName2);
+            await delay(500);
 
             expect(cred1.tokenId).not.toBe(cred2.tokenId);
             expect(cred1.userName).toBe(userName1);
@@ -189,5 +198,27 @@ describe('Credential API - SBT認証情報テスト', () => {
                 expect(cred.address.toLowerCase()).toBe(wallet1.address.toLowerCase());
             });
         }, 30000);
+
+        it('有効なSBT認証情報を正しく検証できる', async () => {
+            const issuedCred = await issueCredential(wallet1, contractAddress, `検証用ユーザー_${Date.now()}`);
+            await delay(500);
+
+            const isValid1 = await verifyCredential(
+                wallet1,
+                contractAddress,
+                issuedCred.tokenId,
+                issuedCred.address
+            );
+            
+            const isValid2 = await verifyCredential(
+                wallet2,
+                contractAddress,
+                issuedCred.tokenId,
+                "0x0000000000000000000000000000000000000000" // 存在しないアドレス
+            );
+
+            expect(isValid1).toBe(true);
+            expect(isValid2).toBe(false);
+        });
     });
 });
