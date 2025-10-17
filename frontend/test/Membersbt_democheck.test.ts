@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "@jest/globals";
 import { ethers, JsonRpcProvider } from 'ethers';
-import fetchCredential from '../src/components/SBT-modules/fetchCredential';
-import issueCredential from '../src/components/SBT-modules/issueCredential';
+import fetchCredential from '../src/components/credential/fetchCredential';
+import issueCredential from '../src/components/credential/issueCredential';
 
 const rpcUrl = 'http://127.0.0.1:8545';
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
