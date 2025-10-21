@@ -15,7 +15,7 @@ interface Params {
 /**
  * Mint a basic NFT token without IPFS metadata
  */
-const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string , metadataURI: string | null) => {
+const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string , metadataURI: string | null, client: IPFSHTTPClient | null) => {
     try {
         const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
         if (metadataURI != null) {
@@ -29,97 +29,55 @@ const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string,
         }
     } catch (error) {
         console.error('Base minting failed:', error);
-        // await rollbackIPFS();
+        if (client != null) {
+            await rollbackIPFS(client);
+        }
         throw new Error(`Failed to mint base NFT: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
-// // エラーが発生したさいにガベージコレクションを行いロールバック処理を行う関数
-// const rollbackIPFS = async (): Promise<Uint8Array> => {
-//     try {
-//         // Dynamic import for Helia to avoid Jest ESM issues
-//         const { createHelia } = await import('helia');
-//         const { unixfs } = await import('@helia/unixfs');
+// エラーが発生した際にガベージコレクションを行いロールバック処理を行う関数
+const rollbackIPFS = async (client: IPFSHTTPClient): Promise<void> => {
+    try {
+        // IPFSノードでガベージコレクションを実行
+        await client.repo.gc();
         
-//         // Initialize Helia node
-//         const helia = await createHelia();
-//         const fs = unixfs(helia);
-
-//         // Remove data from IPFS using Helia
-//         await helia.gc();
-        
-//         // Stop Helia node to free resources
-//         await helia.stop();
-        
-//         console.log('Rollback completed successfully');
-
-//         return new Uint8Array();
-//     } catch (error) {
-//         console.error('Helia rollback failed:', error);
-//         await rollbackIPFS();
-//         throw new Error(`Failed to rollback from IPFS with Helia: ${error instanceof Error ? error.message : 'Unknown error'}`);
-//     }
-// };
+    } catch (error) {
+        console.error('IPFS rollback failed:', error);
+        throw new Error(`Failed to rollback IPFS with gc: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
 
 // // CIDをpinする関数
-// const pinCID = async (cid: string): Promise<void> => {
-//     try {
-//         // Dynamic import for Helia to avoid Jest ESM issues
-//         const { createHelia } = await import('helia');
-//         const { CID } = await import('multiformats/cid');
-        
-//         // Initialize Helia node
-//         const helia = await createHelia();
-        
-//         // Parse CID string to CID object
-//         const cidObj = CID.parse(cid);
-        
-//         // Pin the CID
-//         await helia.pins.add(cidObj);
-        
-//         // Stop Helia node to free resources
-//         await helia.stop();
-        
-//         console.log('CID pinned successfully:', cid);
-//     } catch (error) {
-//         console.error('Failed to pin CID:', error);
-//         throw new Error(`Failed to pin CID ${cid}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-//     }
-// };
+const pinCID = async (client: IPFSHTTPClient, cid: string): Promise<void> => {
+    try {
+        await client.pin.add(cid);
+    } catch (error) {
+        console.error('Failed to pin CID:', error);
+        throw new Error(`Failed to pin CID ${cid}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
 
 // // CIDをunpinする関数
-// const unpinCID = async (cid: string): Promise<void> => {
-//     try {
-//         // Dynamic import for Helia to avoid Jest ESM issues
-//         const { createHelia } = await import('helia');
-//         const { CID } = await import('multiformats/cid');
-        
-//         // Initialize Helia node
-//         const helia = await createHelia();
-        
-//         // Parse CID string to CID object
-//         const cidObj = CID.parse(cid);
-        
-//         // Unpin the CID
-//         await helia.pins.rm(cidObj);
-        
-//         // Stop Helia node to free resources
-//         await helia.stop();
-        
-//         console.log('CID unpinned successfully:', cid);
-//     } catch (error) {
-//         console.error('Failed to unpin CID:', error);
-//         throw new Error(`Failed to unpin CID ${cid}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-//     }
-// };
+const unpinCID = async (client: IPFSHTTPClient, cid: string): Promise<void> => {
+    try {
+        await client.pin.rm(cid);
+    } catch (error) {
+        console.error('Failed to unpin CID:', error);
+        throw new Error(`Failed to unpin CID ${cid}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+};
 
 const uploadTokenData = async (tokenName: string, tokenImage: File | null, description: string, client: IPFSHTTPClient, ipfsApiUrl: string): Promise<string> => {
     let isPinned = false;
-
+    let imageCid : string | null = null;
+    let metadataCid : string | null = null;
+    
     try {
         // 1. File オブジェクトを直接IPFSにアップロード
         if (!tokenImage) return '';
         const imageResult = await client.add(tokenImage);
+        imageCid = imageResult.cid.toString();
 
         // 2. メタデータをIPFSにアップロード（URIを取得）
         const metadata = {
@@ -129,43 +87,36 @@ const uploadTokenData = async (tokenName: string, tokenImage: File | null, descr
             attributes: []
         };
         const metadataResult = await client.add(JSON.stringify(metadata, null, 2));
-        const metadataCid = metadataResult.cid.toString();
+        metadataCid = metadataResult.cid.toString();
         const tokenUrl = `${ipfsApiUrl}:8080/ipfs/${metadataCid}`;
 
         // // 5. 画像とメタデータのCIDをpinする
-        // await pinCID(imageCid);
-        // await pinCID(metadataHash);
-        // isPinned = true;
+        await pinCID(client, imageCid);
+        await pinCID(client, metadataCid);
+        isPinned = true;
 
-        // // 6. スマートコントラクトを呼び出してNFTをミント
-        // const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
-        // const tx = await contract.safeMintIPFS(wallet.address, tokenName, metadataHash);
-        // const txReceipt = await tx.wait();
-
-        // console.log('Transaction created successfully');
         return tokenUrl;
     } catch (error) {
         console.error('IPFS mint failed:', error);
         
         // エラー時にピンされたCIDをunpinする
-        // if (isPinned) {
-        //     try {
-        //         if (imageCid) {
-        //             console.log('Unpinning image CID due to error:', imageCid);
-        //             await unpinCID(imageCid);
-        //         }
-        //         if (metadataHash) {
-        //             console.log('Unpinning metadata CID due to error:', metadataHash);
-        //             await unpinCID(metadataHash);
-        //         }
-        //     } catch (unpinError) {
-        //         console.error('Failed to unpin CIDs during error handling:', unpinError);
-        //     }
-        // }
+        if (isPinned) {
+            try {
+                if (imageCid != null) {
+                    console.log('Unpinning image CID due to error:', imageCid);
+                    await unpinCID(client, imageCid);
+                }
+                if (metadataCid != null) {
+                    console.log('Unpinning metadata CID due to error:', metadataCid);
+                    await unpinCID(client, metadataCid);
+                }
+            } catch (unpinError) {
+                console.error('Failed to unpin CIDs during error handling:', unpinError);
+            }
+        }
         
-        // await rollbackIPFS();
-        // throw new Error(`Failed to mint NFT with IPFS: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        return '';
+        await rollbackIPFS(client);
+        throw new Error(`Failed to mint NFT with IPFS: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 
@@ -191,12 +142,12 @@ const putToken = async (param: Params) => {
         throw new Error('Insufficient balance');
     }
 
-    if (param.image !== null && param.client !== null && param.description !== null && param.ipfsApiUrl !== null) {
+    if (param.image !== null && param.ipfsApiUrl !== null && param.description !== null && param.client !== null) {
         tokenUrl = await uploadTokenData(param.name, param.image, param.description, param.client, param.ipfsApiUrl);
     }
 
     // Call contract to mint NFT
-    const txReceipt = await mintToken(param.wallet, param.contractAddress, param.name, tokenUrl);
+    const txReceipt = await mintToken(param.wallet, param.contractAddress, param.name, tokenUrl, param.client);
     return txReceipt;
 };
 
