@@ -15,57 +15,6 @@
 - [Centrality.ts](/contracts/test/scoring/Centrality.ts): Centrality.solのテストコード
 - [IERC4974.sol](/contracts/contracts/scoring/IERC4974.sol): ERC4974のインターフェース
 
-```mermaid
-classDiagram
-    class IERC165 {
-        <<interface>>
-        +supportsInterface(bytes4 interfaceID) bool
-    }
-
-    class IERC4974 {
-        <<interface>>
-        +setOperator(address _operator)
-        +rate(address _rated, int8 _rating)
-        +removeRating(address _removed)
-        +ratingOf(address _rated) int8
-    }
-
-    class Centrality {
-        +mapping~address => address[]~ adjacencyList
-        +address[] vertices
-        +mapping~address => bool~ vertexExists
-        +addVertex(address user)
-        +addEdge(address userA, address userB)
-        +getDegree(address user) uint256
-        +calculateDegreeCentrality(address user) int8
-        +getAllDegreeCentralities() (address[], int8[])
-        +getConnections(address user) address[]
-        +isConnected(address userA, address userB) bool
-        +getUserCount() uint256
-        +getTotalConnections() uint256
-        +getAllUsers() address[]
-    }
-
-    class Scoring {
-        -mapping~address => bool~ operators
-        -mapping~address => int8~ ratings
-        -mapping~address => int8~ scores
-        +constructor(address _operator)
-        +supportsInterface(bytes4 interfaceID) bool
-        +setOperator(address _operator)
-        +rate(address _rated, int8 _rating)
-        +removeRating(address _removed)
-        +ratingOf(address _rated) int8
-        +getScore(address _user) int8
-        +verifyScore(address myAddress, address targetAddress) bool
-        -onlyOperator() modifier
-    }
-
-    IERC4974 --|> IERC165 : extends
-    Scoring --|> Centrality : inherits
-    Scoring ..|> IERC4974 : implements
-```
-
 ## Centrality
 
 記号の定義
@@ -75,7 +24,7 @@ classDiagram
 - 次数: 接続されている辺の数
     - $\deg(v) = |\{ e \in E \mid v \in e \}|$
 
-次数中心性
+次数中心性の計算方法
 - 次数が多い頂点を中心とする
     - 次数：頂点に対する辺の数
 - 隣接する頂点の重みを一定とする
@@ -89,8 +38,9 @@ c_{d}(v_i) = \frac{\deg(v_i)}{|V| - 1}
 
 Solidityで次数中心性を実装する際の設計方針：
 
-1. **グラフデータ構造**
-   - `mapping(address => address[]) public adjacencyList`: 隣接リストでユーザーアドレス間の接続を管理
+1. **グラフデータ構造（多重グラフ対応）**
+   - `mapping(address => address[]) public adjacencyList`: 隣接リストでユーザーアドレス間の接続を管理（多重辺対応）
+   - `mapping(address => mapping(address => uint256)) public edgeCount`: 同一ユーザー間の辺の数を管理
    - `address[] public vertices`: 存在するユーザーアドレスのリスト
    - `mapping(address => bool) public vertexExists`: ユーザーアドレスの存在確認用
 
@@ -99,29 +49,40 @@ Solidityで次数中心性を実装する際の設計方針：
    // ユーザーアドレスを頂点として追加
    function addVertex(address user) public
    
-   // ユーザー間の辺を追加（無向グラフ）
-   function addEdge(address userA, address userB) public
+   // ユーザー間の辺を追加（無向多重グラフ）
+   function addEdge(address userA, address userB) public returns (uint256 edgeNumber)
    
    // 指定ユーザーの次数を取得
    function getDegree(address user) public view returns (uint256)
    
-   // 指定ユーザーの次数中心性を計算（1000倍したuint256で返す）
-   // 計算式: 次数中心性 = (ユーザーの次数 * 1000) / (総ユーザー数 - 1)
-   function calculateDegreeCentrality(address user) public view returns (uint256)
+   // 2人のユーザー間の辺の数を取得
+   function getEdgeCount(address userA, address userB) public view returns (uint256)
+   
+   // 指定ユーザーの次数中心性を計算（100倍したint8で返す）
+   function calculateDegreeCentrality(address user) public view returns (int8)
    
    // 全ユーザーの次数中心性を計算
-   function getAllDegreeCentralities() public view returns (address[] memory, uint256[] memory)
+   function getAllDegreeCentralities() public view returns (address[] memory, int8[] memory)
    
    // ユーザーの接続相手を取得
    function getConnections(address user) public view returns (address[] memory)
+   
+   // 2人のユーザーが接続されているかチェック
+   function isConnected(address userA, address userB) public view returns (bool)
+   
+   // 総ユーザー数を取得
+   function getUserCount() public view returns (uint256)
+   
+   // 総接続数を取得
+   function getTotalConnections() public view returns (uint256)
+   
+   // すべてのユーザーアドレスを取得
+   function getAllUsers() public view returns (address[] memory)
    ```
 
 3. **実装上の考慮事項**
-   - Solidityでは浮動小数点数が使えないため、1000倍して整数で扱う
-   - ガス効率を考慮した隣接リスト構造を使用
-   - 重複辺の防止機能を実装（同じユーザー間の重複接続を防ぐ）
-   - イベントを使用してユーザー間の接続を記録
-   - ゼロアドレス（0x0）の頂点追加を防ぐ
+   - Solidityでは浮動小数点数が使えないため、100倍して整数で扱う
+   - 多重辺対応：同一ユーザー間の複数の接続（取引）を許容する
    - 自分自身への接続（自己ループ）を防ぐ
 
 ### Centrality.ts
@@ -132,57 +93,59 @@ Hardhatを使用したテストの設計方針：
 
 1. **テストケース構成**
    - **基本機能テスト**: ユーザーアドレスの追加、ユーザー間接続の追加、次数計算
+   - **多重辺テスト**: 同一ユーザー間の複数接続と辺カウント機能
    - **次数中心性計算テスト**: 各種グラフパターンでの正確性検証
    - **エラーハンドリングテスト**: 存在しないユーザーへの操作、ゼロアドレス、自己ループ
 
 2. **主要テストケース**
 
-   **テスト環境設定**
-   - Hardhat + Chai + ethers.jsを使用
-   - 各テスト前にScoringコントラクトをデプロイ
-   - 5つのユーザーアドレス（owner, addr1, addr2, addr3, addr4）を準備
-
    **基本機能テスト**
    - 初期状態でユーザー数が0であることを確認
    - ユーザーアドレスの追加機能
-   - ユーザー間接続の追加・削除機能
+   - ユーザー間接続の追加機能（多重辺対応）
+
+   **多重辺テスト**
+   - 同一ユーザー間への複数接続の追加
+   - `getEdgeCount`による辺数の確認
+   - 多重辺が次数計算に正しく反映されること
 
    **次数中心性計算テスト**
    
    *線形グラフテスト（4ユーザー）*
    - 接続: addr1-addr2-addr3-addr4
    - 期待値: 
-        - addr1（端点）: 333/1000 (33.3%)
-        - addr2（中間）: 666/1000 (66.6%)
-        - addr3（中間）: 666/1000 (66.6%)
-        - addr4（端点）: 333/1000 (33.3%)
+        - addr1（端点）: 33 (33.3%)
+        - addr2（中間）: 66 (66.6%)
+        - addr3（中間）: 66 (66.6%)
+        - addr4（端点）: 33 (33.3%)
 
    *完全グラフテスト（4ユーザー）*
    - 接続: 全ユーザーが相互接続
-   - 期待値: 全ユーザーで1000/1000 (100%)
+   - 期待値: 全ユーザーで100 (100%)
 
    *星型グラフテスト（4ユーザー）*
    - 接続: 1人の中心ユーザーが他の3人と接続
    - 期待値:
-        - 中心ユーザー: 1000/1000 (100%)
-        - 周辺ユーザー: 333/1000 (33.3%)
+        - 中心ユーザー: 100 (100%)
+        - 周辺ユーザー: 33 (33.3%)
+
+   *多重辺テスト*
+   - 同一ユーザー間に複数の辺を追加
+   - 多重辺が次数中心性計算に正しく反映されること
 
    **エラーハンドリングテスト**
    - ゼロアドレス（0x0）の追加を拒否
    - 自己接続（同一ユーザー間の接続）を拒否
    - 存在しないユーザーの次数取得でエラー
-   - 重複接続の追加を拒否
-
-   **大規模ネットワークテスト**
-   - 5ユーザー以上の複雑なネットワーク
-   - ガス効率の確認
-   - 計算精度の検証
 
    **補助機能テスト**
    - ユーザーの接続相手一覧取得
+   - 2人のユーザー間の辺数取得（`getEdgeCount`）
+   - ユーザー間接続確認（`isConnected`）
    - 総ユーザー数の取得
    - 総接続数の取得
    - 全ユーザーの次数中心性一括取得
+   - 全ユーザーアドレス一覧取得
 
 ## Trust scoring
 
@@ -340,5 +303,6 @@ classDiagram
 ```
 
 ### Reference
+
 - Ethereum Improvement Proposals, ERC-4974: Ratings, [https://eips.ethereum.org/EIPS/eip-4974](https://eips.ethereum.org/EIPS/eip-4974)
 - Ethereum Improvement Proposals, ERC-165: Standard Interface Detection, [https://eips.ethereum.org/EIPS/eip-165](https://eips.ethereum.org/EIPS/eip-165)

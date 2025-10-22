@@ -5,10 +5,14 @@ pragma solidity ^0.8.19;
  * @title Centrality
  * @dev 次数中心性を計算するスマートコントラクト
  * ユーザーアドレスを頂点として、ユーザー間の接続関係を管理し、次数中心性を算出する
+ * 自己ループは許容しないが、同一ユーザー間の複数の辺（多重辺）を許容する
  */
 contract Centrality {
-    // ユーザーアドレス間の隣接リストを管理
+    // ユーザーアドレス間の隣接リストを管理（多重辺対応）
     mapping(address => address[]) public adjacencyList;
+    
+    // 同一ユーザー間の辺の数を管理
+    mapping(address => mapping(address => uint256)) public edgeCount;
     
     // 存在するユーザーアドレスのリスト
     address[] public vertices;
@@ -18,8 +22,7 @@ contract Centrality {
     
     // イベント定義
     event UserAdded(address indexed user);
-    event ConnectionAdded(address indexed userA, address indexed userB);
-    event ConnectionRemoved(address indexed userA, address indexed userB);
+    event ConnectionAdded(address indexed userA, address indexed userB, uint256 edgeNumber);
     
     /**
      * @dev ユーザーアドレスを頂点として追加
@@ -38,11 +41,12 @@ contract Centrality {
     }
     
     /**
-     * @dev ユーザー間の辺を追加（無向グラフ）
+     * @dev ユーザー間の辺を追加（無向多重グラフ）
      * @param userA 接続するユーザーA
      * @param userB 接続するユーザーB
+     * @return edgeNumber 追加された辺の番号（何本目の辺か）
      */
-    function addEdge(address userA, address userB) public {
+    function addEdge(address userA, address userB) public returns (uint256 edgeNumber) {
         require(userA != address(0) && userB != address(0), "Invalid user address");
         require(userA != userB, "Self-connection not allowed");
         
@@ -54,16 +58,18 @@ contract Centrality {
             addVertex(userB);
         }
         
-        // 重複チェック
-        if (isConnected(userA, userB)) {
-            return;
-        }
-
-        // 双方向接続を追加
+        // 多重辺として追加
         adjacencyList[userA].push(userB);
         adjacencyList[userB].push(userA);
         
-        emit ConnectionAdded(userA, userB);
+        // 辺の数をカウント
+        edgeCount[userA][userB]++;
+        edgeCount[userB][userA]++;
+        
+        edgeNumber = edgeCount[userA][userB];
+        
+        emit ConnectionAdded(userA, userB, edgeNumber);
+        return edgeNumber;
     }
     
     /**
@@ -77,9 +83,19 @@ contract Centrality {
     }
     
     /**
-     * @dev 指定ユーザーの次数中心性を計算（1000倍したuint256で返す）
+     * @dev 2人のユーザー間の辺の数を取得
+     * @param userA ユーザーA
+     * @param userB ユーザーB
+     * @return 辺の数
+     */
+    function getEdgeCount(address userA, address userB) public view returns (uint256) {
+        return edgeCount[userA][userB];
+    }
+    
+    /**
+     * @dev 指定ユーザーの次数中心性を計算（100倍したint8で返す）
      * @param user 次数中心性を計算するユーザーアドレス
-     * @return 次数中心性（1000倍した値）
+     * @return 次数中心性（100倍した値）
      */
     function calculateDegreeCentrality(address user) public view returns (int8) {
         require(user != address(0), "Invalid user address");
@@ -97,7 +113,7 @@ contract Centrality {
     /**
      * @dev 全ユーザーの次数中心性を計算
      * @return users ユーザーアドレスの配列
-     * @return centralities 対応する次数中心性の配列（1000倍した値）
+     * @return centralities 対応する次数中心性の配列（100倍した値）
      */
     function getAllDegreeCentralities() public view returns (address[] memory users, int8[] memory centralities) {
         uint256 userCount = vertices.length;
@@ -129,17 +145,7 @@ contract Centrality {
      * @return 接続されている場合true
      */
     function isConnected(address userA, address userB) public view returns (bool) {
-        if (!vertexExists[userA] || !vertexExists[userB]) {
-            return false;
-        }
-        
-        address[] memory connections = adjacencyList[userA];
-        for (uint256 i = 0; i < connections.length; i++) {
-            if (connections[i] == userB) {
-                return true;
-            }
-        }
-        return false;
+        return edgeCount[userA][userB] > 0;
     }
     
     /**
