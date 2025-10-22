@@ -34,8 +34,12 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
     }
 
     function transferFrom(address from, address to, uint256 tokenId) public override {
+        // アクセス制御の確認
+        bool allowed = accessControl(from, to);
+        require(allowed, "Transfer not allowed due to scoring rules");
+
+        // NFTの交換と取引履歴の更新
         super.transferFrom(from, to, tokenId);
-        // 取引履歴の更新
         addEdge(from, to);
     }
 
