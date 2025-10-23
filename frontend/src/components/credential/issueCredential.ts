@@ -1,12 +1,22 @@
 import { ethers, Wallet, HDNodeWallet } from "ethers";
-import MemberSBTDemoAbi from '../../../abi/MemberSBT_Demo.json';
+import MemberSBTDemoAbi from '../../../abi/MemberSbtDemo.json';
 
+/**
+ * SBT（Soulbound Token）を発行する
+ * 
+ * @param wallet - ウォレットインスタンス（Wallet または HDNodeWallet）
+ * @param contractAddress - MemberSbtDemoコントラクトのアドレス
+ * @param userName - SBTに紐付けるユーザー名
+ * @returns 発行されたSBTの認証情報（UserCredential）
+ * @throws 発行失敗時にエラーをスロー
+ */
 export const issueCredential = async (
     wallet: Wallet | HDNodeWallet, 
     contractAddress: string,
     userName: string
 ): Promise<UserCredential> => {
     try {
+        // 入力値の検証
         if (!ethers.isAddress(contractAddress)) {
             throw new Error('Invalid contract address');
         }
@@ -19,8 +29,10 @@ export const issueCredential = async (
             throw new Error('Wallet provider is not available');
         }
 
+        // コントラクトインスタンスを作成
         const contract = new ethers.Contract(contractAddress, MemberSBTDemoAbi.abi, wallet);
         
+        // トランザクションを送信
         let tx;
         try {
             tx = await contract.safeMint(wallet.address, userName);
@@ -34,6 +46,7 @@ export const issueCredential = async (
             throw new Error(`Transaction failed: ${txError.message || 'Unknown error'}`);
         }
 
+        // トランザクションの完了を待機
         let receipt;
         try {
             receipt = await tx.wait();
@@ -45,6 +58,7 @@ export const issueCredential = async (
             throw new Error('Transaction receipt is null');
         }
         
+        // イベントログからSBTMintedイベントを取得
         const mintEvent = receipt.logs
             .map((log: any) => {
                 try {
@@ -59,12 +73,14 @@ export const issueCredential = async (
             throw new Error('SBTMinted event not found in transaction logs');
         }
 
+        // トークンIDを取得して検証
         const tokenId = Number(mintEvent.args.tokenId);
 
         if (isNaN(tokenId) || tokenId < 0) {
             throw new Error('Invalid token ID received from event');
         }
 
+        // UserCredential型のオブジェクトを返す
         return {
             tokenId,
             userName,

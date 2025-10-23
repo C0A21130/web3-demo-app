@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { MemberSBT_Demo } from "../typechain-types";
+import { MemberSbtDemo } from "../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
-describe("MemberSBT_Demo", function () {
-  let demoSbt: MemberSBT_Demo;
+describe("MemberSbtDemo", function () {
+  let demoSbt: MemberSbtDemo;
   let owner: HardhatEthersSigner;
   let user1: HardhatEthersSigner;
   let user2: HardhatEthersSigner;
@@ -12,7 +12,7 @@ describe("MemberSBT_Demo", function () {
   beforeEach(async function () {
     [owner, user1, user2] = await ethers.getSigners();
     
-    const MemberSBTDemoFactory = await ethers.getContractFactory("MemberSBT_Demo");
+    const MemberSBTDemoFactory = await ethers.getContractFactory("MemberSbtDemo");
     
     demoSbt = await MemberSBTDemoFactory.deploy(
       "DemoSBT",
@@ -41,7 +41,7 @@ describe("MemberSBT_Demo", function () {
 
       await expect(
         demoSbt.connect(user1).safeMint(user2.address, userName)
-      ).to.be.revertedWith("MemberSBT_Demo: You can only mint an SBT for yourself.");
+      ).to.be.revertedWith("MemberSbtDemo: You can only mint an SBT for yourself.");
     });
 
     it("🚫 発行されたSBTは譲渡できない", async function () {

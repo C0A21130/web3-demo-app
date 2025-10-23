@@ -1,11 +1,11 @@
 import { ethers, Wallet, HDNodeWallet } from "ethers";
-import MemberSBTAbi from '../../../abi/MemberSBT_Demo.json';
+import MemberSBTAbi from '../../../abi/MemberSbtDemo.json';
 
 /**
  * 指定されたSBT会員証が本当に発行されているかを検証する
  * 
  * @param wallet - ウォレットインスタンス（Wallet または HDNodeWallet）
- * @param contractAddress - MemberSBT_Demoスマートコントラクトのアドレス
+ * @param contractAddress - MemberSbtDemoスマートコントラクトのアドレス
  * @param tokenId - 所有権を検証するトークンID
  * @returns Promise<boolean> - ウォレットがSBTを所有している場合はtrue、そうでなければfalse
  * @throws ネットワークの問題や無効なパラメータにより検証が失敗した場合はエラーをスローする

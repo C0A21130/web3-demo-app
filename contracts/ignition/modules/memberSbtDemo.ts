@@ -9,9 +9,9 @@ const MemberSBTDemoModule = buildModule("MemberSBTDemoModule", (m) => {
   // デプロイに使用するアカウントを管理者として設定します
   const ownerAdmin = m.getAccount(0);
 
-  // --- MemberSBT_Demo コントラクトのデプロイを定義 ---
-  // "MemberSBT_Demo" は Solidity ファイルのコントラクト名と一致させます
-  const demoSbt = m.contract("MemberSBT_Demo", [
+  // --- MemberSbtDemo コントラクトのデプロイを定義 ---
+  // "MemberSbtDemo" は Solidity ファイルのコントラクト名と一致させます
+  const demoSbt = m.contract("MemberSbtDemo", [
     name,
     symbol,
     isLocked,
