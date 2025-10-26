@@ -10,7 +10,7 @@ import SsdlabAbi from "./../../abi/SsdlabToken.json";
  * @param tokenId - The ID of the NFT token to be transferred.
  * @throws Will throw an error if the wallet balance is insufficient or if the transfer process fails.
  */
-const transferToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, to: string, tokenId: number) => {
+const transferToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, to: string, tokenId: number): Promise<boolean> => {
   const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
   const from = wallet.address;
   let toAddress = to;
@@ -30,8 +30,11 @@ const transferToken = async (wallet: Wallet | HDNodeWallet, contractAddress: str
   try {
     const tx = await contract.safeTransferFrom(from, toAddress, tokenId);
     const txReceipt = await tx.wait();
-    return txReceipt;
-  } catch (error) {
+    return txReceipt ? true : false;
+  } catch (error: any) {
+    if (error.message.includes('Transfer not allowed due to scoring rules')) {
+      return false;
+    }
     console.error(error);
     throw new Error('Failed to transfer NFT');
   }

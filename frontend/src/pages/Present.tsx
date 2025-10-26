@@ -59,8 +59,11 @@ const Present = () => {
     }
 
     // 自身と取引相手の信用スコアを確認する
-    const isValidScore = await verifyScore(wallet, address, contractAddress);
-    if (!isValidScore) {
+    const validScoreResult = await verifyScore(wallet, address, contractAddress);
+    if(!validScoreResult.isAuthorized) {
+      window.alert("取引相手からの承認が得られませんでした。取引を中止します。");
+      return false;
+    } else if (!validScoreResult.isVerified) {
       if (!window.confirm("取引相手の信用スコアが不足しています。本当に取引して問題ないですか？")) { return false; }
     }
 
