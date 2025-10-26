@@ -103,11 +103,11 @@ contract Centrality {
             return 0;
         }
 
-        int256 userCount = int256(vertices.length);
-        if (userCount <= 1) return 0;
-
-        int256 degree = int256(getDegree(user));
-        return int8((degree * 100) / (userCount - 1));
+        // 次数中心性を計算
+        int256 totalConnections = getTotalConnections(); // 総接続数
+        if (totalConnections == 0) return 0;
+        int256 degree = int256(getDegree(user)); // ユーザーの次数
+        return int8((degree * 100) / (totalConnections));
     }
     
     /**
@@ -160,10 +160,10 @@ contract Centrality {
      * @dev 総接続数を取得
      * @return 総接続数（辺の数）
      */
-    function getTotalConnections() public view returns (uint256) {
-        uint256 totalDegree = 0;
+    function getTotalConnections() public view returns (int256) {
+        int256 totalDegree = 0;
         for (uint256 i = 0; i < vertices.length; i++) {
-            totalDegree += adjacencyList[vertices[i]].length;
+            totalDegree += int256(adjacencyList[vertices[i]].length);
         }
         // 無向グラフなので2で割る
         return totalDegree / 2;

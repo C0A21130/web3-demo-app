@@ -120,11 +120,11 @@ describe("Centrality Contract", function () {
       await Centrality.addEdge(addr2.address, addr3.address);
       await Centrality.addEdge(addr3.address, addr4.address);
 
-      // 期待値: 次数中心性 = (次数 * 100) / (総ユーザー数 - 1)
-      // addr1: 次数=1, 中心性=(1*100)/(4-1)=33
-      // addr2: 次数=2, 中心性=(2*100)/(4-1)=66
-      // addr3: 次数=2, 中心性=(2*100)/(4-1)=66
-      // addr4: 次数=1, 中心性=(1*100)/(4-1)=33
+      // 期待値: 次数中心性 = (次数 * 100) / (総接続数)
+      // addr1: 次数=1, 中心性=(1*100)/(3)=33
+      // addr2: 次数=2, 中心性=(2*100)/(3)=66
+      // addr3: 次数=2, 中心性=(2*100)/(3)=66
+      // addr4: 次数=1, 中心性=(1*100)/(3)=33
 
       expect(await Centrality.calculateDegreeCentrality(addr1.address)).to.equal(33);
       expect(await Centrality.calculateDegreeCentrality(addr2.address)).to.equal(66);
@@ -139,15 +139,21 @@ describe("Centrality Contract", function () {
       await Centrality.addEdge(addr1.address, addr2.address);
       await Centrality.addEdge(addr1.address, addr3.address);
       await Centrality.addEdge(addr1.address, addr4.address);
+      await Centrality.addEdge(addr2.address, addr1.address);
       await Centrality.addEdge(addr2.address, addr3.address);
       await Centrality.addEdge(addr2.address, addr4.address);
+      await Centrality.addEdge(addr3.address, addr1.address);
+      await Centrality.addEdge(addr3.address, addr2.address);
       await Centrality.addEdge(addr3.address, addr4.address);
+      await Centrality.addEdge(addr4.address, addr1.address);
+      await Centrality.addEdge(addr4.address, addr2.address);
+      await Centrality.addEdge(addr4.address, addr3.address);
 
-      // 全ユーザーの次数=3, 中心性=(3*100)/(4-1)=100 (100%)
-      expect(await Centrality.calculateDegreeCentrality(addr1.address)).to.equal(100);
-      expect(await Centrality.calculateDegreeCentrality(addr2.address)).to.equal(100);
-      expect(await Centrality.calculateDegreeCentrality(addr3.address)).to.equal(100);
-      expect(await Centrality.calculateDegreeCentrality(addr4.address)).to.equal(100);
+      // 全ユーザーの次数=6, 総接続数=12, 中心性=(6*100)/(12)=50
+      expect(await Centrality.calculateDegreeCentrality(addr1.address)).to.equal(50);
+      expect(await Centrality.calculateDegreeCentrality(addr2.address)).to.equal(50);
+      expect(await Centrality.calculateDegreeCentrality(addr3.address)).to.equal(50);
+      expect(await Centrality.calculateDegreeCentrality(addr4.address)).to.equal(50);
     });
 
     it("星型グラフ（4ユーザー）の次数中心性を正しく計算できること", async function () {
@@ -158,8 +164,8 @@ describe("Centrality Contract", function () {
       await Centrality.addEdge(addr1.address, addr3.address);
       await Centrality.addEdge(addr1.address, addr4.address);
 
-      // 中心ユーザー(addr1): 次数=3, 中心性=(3*100)/(4-1)=100
-      // 周辺ユーザー: 次数=1, 中心性=(1*100)/(4-1)=33
+      // 中心ユーザー(addr1): 次数=3, 総接続数=3, 中心性=(3*100)/(3)=100
+      // 周辺ユーザー: 次数=1, 総接続数=3, 中心性=(1*100)/(3)=33
       expect(await Centrality.calculateDegreeCentrality(addr1.address)).to.equal(100);
       expect(await Centrality.calculateDegreeCentrality(addr2.address)).to.equal(33);
       expect(await Centrality.calculateDegreeCentrality(addr3.address)).to.equal(33);
