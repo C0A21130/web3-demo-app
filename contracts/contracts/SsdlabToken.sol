@@ -19,6 +19,8 @@ contract SsdlabToken is ERC721, AccessControl {
     // ウォレットアドレスのマッピング
     mapping(string => address) private _userAddresses;
 
+    mapping(uint256 => string) private _tokenURIs;
+
     constructor(address teacher, address student) ERC721("MyToken", "") {
         _grantRole(DEFAULT_ADMIN_ROLE, teacher);
         _grantRole(STUDENTS_ROLE, student);
@@ -65,6 +67,8 @@ contract SsdlabToken is ERC721, AccessControl {
 
     // トークンURIを設定する関数
     function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
+        require(tokenId >= 0, "ERC721Metadata: URI set of nonexistent token");
+        _tokenURIs[tokenId] = _tokenURI;
     }
     
     // トークン名を取得する関数
@@ -74,7 +78,7 @@ contract SsdlabToken is ERC721, AccessControl {
 
     // トークンURIを取得する関数
     function getTokenURI(uint256 tokenId) public view returns (string memory) {
-        return tokenURI(tokenId);
+        return _tokenURIs[tokenId];
     }
 
 

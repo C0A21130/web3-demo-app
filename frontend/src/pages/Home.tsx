@@ -53,12 +53,14 @@ const Home = () => {
             <Group style={{ marginBottom: 5, marginTop: 10 }}>
               <Text size="lg">{token.name} #{token.tokenId}</Text>
             </Group>
+            <Text size="sm">{token.description}</Text>
             <Text size="sm" style={{ lineHeight: 1.5 }}>
               トークンのオーナー: {token.owner}
             </Text>
             <Group className='mt-4'>
               <Text size="sm">{token.from} から</Text>
               <Text size="sm">{token.to} へ送られました</Text>
+              <img hidden={token.imageUrl == null} src={token.imageUrl != null ? token.imageUrl : '/no-image.png'} alt="Token Image" style={{ maxWidth: '200px', marginTop: '10px' }} />
             </Group>
           </Card>
         ))}

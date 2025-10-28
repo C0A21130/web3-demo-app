@@ -1,7 +1,8 @@
 import { describe, it, expect } from "@jest/globals";
-import { Wallet, JsonRpcProvider } from 'ethers';
+import { Wallet, JsonRpcProvider, Contract } from 'ethers';
 import putToken from '../src/components/putToken';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import SsdlabAbi from "../abi/SsdlabToken.json";
 
 const rpcUrls = ['http://localhost:8545'];
 const ipfsApiUrl = 'http://10.203.92.63';
@@ -43,5 +44,9 @@ describe('IPFS', () => {
     // トークンが正常にミントされたかチェック
     const tokenId = txReceipt.logs[txReceipt.logs.length - 1].args[2];
     expect(tokenId).toBeDefined();
+
+    const contract = new Contract(contractAddress, SsdlabAbi.abi, provider);
+    const tokenURI = await contract.getTokenURI(tokenId);
+    console.log(`Token URI for minted token ${tokenId}: ${tokenURI}`);
   }, 60000); // IPFS処理に時間がかかる可能性があるため60秒に延長
 });
