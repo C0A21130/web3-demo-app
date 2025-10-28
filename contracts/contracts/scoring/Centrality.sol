@@ -27,7 +27,9 @@ contract Centrality {
      */
     function addVertex(address user) public {
         require(user != address(0), "Invalid user address");
-        require(!vertexExists[user], "User already exists");
+        if (vertexExists[user]) {
+            return;
+        }
         
         vertices.push(user);
         vertexExists[user] = true;
@@ -53,8 +55,10 @@ contract Centrality {
         }
         
         // 重複チェック
-        require(!isConnected(userA, userB), "Connection already exists");
-        
+        if (isConnected(userA, userB)) {
+            return;
+        }
+
         // 双方向接続を追加
         adjacencyList[userA].push(userB);
         adjacencyList[userB].push(userA);
@@ -78,8 +82,10 @@ contract Centrality {
      * @return 次数中心性（1000倍した値）
      */
     function calculateDegreeCentrality(address user) public view returns (int8) {
-        require(vertexExists[user], "User does not exist");
         require(user != address(0), "Invalid user address");
+        if (!vertexExists[user]) {
+            return 0;
+        }
 
         int256 userCount = int256(vertices.length);
         if (userCount <= 1) return 0;

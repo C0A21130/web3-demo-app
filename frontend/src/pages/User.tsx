@@ -3,7 +3,7 @@ import { formatEther, Wallet } from 'ethers';
 import { Flex, Group, Text, Paper, Container, Button, Alert } from '@mantine/core';
 import { IconWallet } from '@tabler/icons-react';
 import DisplayCredential from '../components/credential/displayCredential';
-import { rpcUrls, rpcUrlIndexContext, credentialContractAddress, receiveAccountPrivateKey, walletContext } from '../App';
+import { rpcUrls, rpcUrlIndexContext, contractAddress, credentialContractAddress, receiveAccountPrivateKey, walletContext } from '../App';
 import getWallet from '../components/getWallet';
 import transferEther  from '../components/transferEther';
 
@@ -18,7 +18,6 @@ const User = () => {
   const createWallet = async () => {
     const {wallet, rpcUrlIndex} = await getWallet(rpcUrls, localStorage);
     if (rpcUrlIndex === -1) {
-      setRpcUrlIndex(-1);
       return;
     }
     setWallet(wallet);
@@ -57,10 +56,7 @@ const User = () => {
 
   // Update the wallet details when the component mounts or when the wallet changes
   useEffect(() => {
-    const init = async () => {
-      await createWallet();
-    }
-    init();
+    createWallet();
   }, []);
 
   return (
@@ -89,7 +85,7 @@ const User = () => {
           </Button>
         </Group>
       </Paper>
-      <DisplayCredential hidden={balance === "0.0"} wallet={wallet} contractAddress={credentialContractAddress} />
+      <DisplayCredential hidden={balance === "0.0"} wallet={wallet} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
       <Alert title="注意" color="yellow" className="mt-4" hidden={address != "0x0" || rpcUrlIndex == -1}>
         ブロックチェーンに接続中です
       </Alert>

@@ -1,27 +1,37 @@
 import { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatEther } from 'ethers';
-import { Paper, Text, TextInput, Button, Container, Alert, Flex} from '@mantine/core';
+import { Paper, Text, TextInput, Button, Container, Alert, Flex } from '@mantine/core';
 import { walletContext, contractAddress, credentialContractAddress } from '../App';
-import putToken from '../components/putToken';
-import transferToken from '../components/transferToken';
 import CreatePhoto from '../components/present/createPhoto';
 import UserList from '../components/present/userList';
+import putToken from '../components/putToken';
+import transferToken from '../components/transferToken';
 import verifyCredential from '../components/credential/verifyCredential';
+import verifyScore from '../components/scoring/verifyScore';
 
 const Present = () => {
   const [myAddress, setMyAddress] = useState('0x000');
   const [myBalance, setMyBalance] = useState('0.0');
   const [tokenName, setTokenName] = useState('');
-  const [address, setAddress] = useState('0x000');
+  const [address, setAddress] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [credentials, setCredentials] = useState<UserCredential[]>([]);
   const [presentStatus, setPresentStatus] = useState<"画像作成中" | "感謝を送信する" | "感謝を送信中" | "感謝を送信失敗" | "感謝を送信完了" >("画像作成中");
   const [wallet] = useContext(walletContext);
+  const navigate = useNavigate();
 
+  // ウォレット情報を更新する
   const updateWalletDetails = async () => {
+    // ウォレットが未接続の場合はユーザーページへ遷移する
+    if (!wallet) {
+      navigate('/user'); 
+      return;
+    }
+
     // ウォレットアドレスを取得する
-    if (wallet == undefined) { return; }
+    if (myBalance != '0.0') { return; }
     setMyAddress(wallet.address);
 
     // 残高を確認する
@@ -39,22 +49,29 @@ const Present = () => {
     }
   }
 
-  // 感謝を送信する(TODO: 実装予定)
-  const presentToken = async () => {
-    if (wallet == undefined) { return; }
+  // 送信前に検証を行う
+  const isValid = async (): Promise<boolean> => {
+    if (wallet == undefined) { return false; }
     
     // 会員証が発行されているか検証する
     const tokenId = credentials.find(cred => cred.address.toLowerCase() === address.toLowerCase())?.tokenId;
     const isValidCredential = await verifyCredential(wallet, credentialContractAddress, tokenId ? tokenId : -1, address);
     if (!isValidCredential) {
-      if (!window.confirm("送信先のアドレスは会員証を持っていません。本当に取引して問題ないですか？")) { return; }
+      if (!window.confirm("送信先のアドレスは会員証を持っていません。本当に取引して問題ないですか？")) { return false; }
     }
 
-    // 自身と取引相手の信用スコアを確認する(TOODO: Trustスコア実装予定)
-    const checkScore = true;
-    if (!checkScore) {
-      if (!window.confirm("取引相手の信用スコアが不足しています。本当に取引して問題ないですか？")) { return; }
+    // 自身と取引相手の信用スコアを確認する
+    const isValidScore = await verifyScore(wallet, address, contractAddress);
+    if (!isValidScore) {
+      if (!window.confirm("取引相手の信用スコアが不足しています。本当に取引して問題ないですか？")) { return false; }
     }
+    
+    return true;
+  }
+
+  // 感謝を送信する(TODO: 実装予定)
+  const presentToken = async () => {
+    if (!await isValid()) { return; } // 検証に失敗した場合は処理を中断する
 
     // IPFSに画像をアップロードしてトークンを送信する(TODO: 実装予定)
     if (wallet == undefined || presentStatus != "感謝を送信する") { return; }
@@ -73,7 +90,7 @@ const Present = () => {
 
   useEffect(() => {
     updateWalletDetails();
-  }, [wallet]);
+  }, []);
 
   return (
     <Container size="sm" className="mt-10">
@@ -112,7 +129,7 @@ const Present = () => {
           <Button variant="filled" color="blue" fullWidth className="mt-4" onClick={() => presentToken()}>
             {presentStatus}
           </Button>
-          <UserList wallet={wallet} contractAddress={credentialContractAddress} credentials={credentials} setCredentials={setCredentials} setAddress={setAddress} />
+          <UserList wallet={wallet} credentials={credentials} setCredentials={setCredentials} setAddress={setAddress} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
         </Flex>
       </Paper>
       

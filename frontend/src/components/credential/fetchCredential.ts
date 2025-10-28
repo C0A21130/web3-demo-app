@@ -37,8 +37,6 @@ export const fetchCredential = async (
             throw new Error(`Failed to create contract instance: ${contractError.message || 'Unknown error'}`);
         }
 
-        console.log(`📡 Fetching event logs...`);
-
         // SBTMintedイベントのフィルターを作成
         let filter;
         try {
@@ -60,8 +58,6 @@ export const fetchCredential = async (
             }
             throw new Error(`Failed to query events: ${queryError.message || 'Unknown error'}`);
         }
-
-        console.log(`📊 Found ${events.length} SBTMinted events`);
 
         // イベントが見つからない場合は空配列を返す
         if (events.length === 0) {
@@ -112,8 +108,6 @@ export const fetchCredential = async (
                 continue;
             }
         }
-
-        console.log(`✅ Retrieved ${credentials.length} credentials`);
 
         return credentials;
 
