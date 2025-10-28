@@ -1,19 +1,20 @@
 import { useState, useContext, useEffect } from 'react';
-import { formatEther } from 'ethers';
 import { useNavigate } from 'react-router-dom';
-import { Paper, Text, TextInput, Button, Container, Alert, Flex} from '@mantine/core';
-import { contractAddress, walletContext } from '../App';
-import putToken from '../components/putToken';
-import transferToken from '../components/transferToken';
-import verifyScore from '../components/scoring/verifyScore';
+import { formatEther } from 'ethers';
+import { Paper, Text, TextInput, Button, Container, Alert, Flex } from '@mantine/core';
+import { walletContext, contractAddress, credentialContractAddress } from '../App';
 import CreatePhoto from '../components/present/createPhoto';
 import UserList from '../components/present/userList';
+import putToken from '../components/putToken';
+import transferToken from '../components/transferToken';
+import verifyCredential from '../components/credential/verifyCredential';
+import verifyScore from '../components/scoring/verifyScore';
 
 const Present = () => {
   const [myAddress, setMyAddress] = useState('0x000');
   const [myBalance, setMyBalance] = useState('0.0');
   const [tokenName, setTokenName] = useState('');
-  const [address, setAddress] = useState('0x000');
+  const [address, setAddress] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [credentials, setCredentials] = useState<UserCredential[]>([]);
@@ -51,9 +52,10 @@ const Present = () => {
   // 送信前に検証を行う
   const isValid = async (): Promise<boolean> => {
     if (wallet == undefined) { return false; }
-
-    // 会員証が発行されているか検証する(TOODO: SBT実装予定)
-    const isValidCredential = true;
+    
+    // 会員証が発行されているか検証する
+    const tokenId = credentials.find(cred => cred.address.toLowerCase() === address.toLowerCase())?.tokenId;
+    const isValidCredential = await verifyCredential(wallet, credentialContractAddress, tokenId ? tokenId : -1, address);
     if (!isValidCredential) {
       if (!window.confirm("送信先のアドレスは会員証を持っていません。本当に取引して問題ないですか？")) { return false; }
     }
@@ -63,7 +65,7 @@ const Present = () => {
     if (!isValidScore) {
       if (!window.confirm("取引相手の信用スコアが不足しています。本当に取引して問題ないですか？")) { return false; }
     }
-
+    
     return true;
   }
 
@@ -127,7 +129,7 @@ const Present = () => {
           <Button variant="filled" color="blue" fullWidth className="mt-4" onClick={() => presentToken()}>
             {presentStatus}
           </Button>
-          <UserList wallet={wallet} credentials={credentials} setCredentials={setCredentials} setAddress={setAddress} contractAddress={contractAddress} />
+          <UserList wallet={wallet} credentials={credentials} setCredentials={setCredentials} setAddress={setAddress} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
         </Flex>
       </Paper>
       

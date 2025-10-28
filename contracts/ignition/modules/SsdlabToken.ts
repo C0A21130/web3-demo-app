@@ -9,9 +9,9 @@ const SsdlabTokenModule = buildModule("SsdlabTokenModule", (m) => {
   const operatorAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
   const ssdlabToken = m.contract("SsdlabToken", [teacherAddress, studentAddress]);
-  const scoring = m.contract("Scoring", [operatorAddress]);
+  const credential = m.contract("MemberSbtDemo", ["DemoSBT", "DSBT", true, operatorAddress]);
 
-  return { ssdlabToken, scoring };
+  return { ssdlabToken, credential };
 });
 
 export default SsdlabTokenModule;
