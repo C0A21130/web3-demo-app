@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
-import { formatEther, Wallet } from 'ethers';
+import { formatEther } from 'ethers';
 import { Flex, Group, Text, Paper, Container, Button, Alert } from '@mantine/core';
 import { IconWallet } from '@tabler/icons-react';
 import DisplayCredential from '../components/credential/displayCredential';
-import { rpcUrls, rpcUrlIndexContext, contractAddress, receiveAccountPrivateKey, walletContext } from '../App';
+import { rpcUrls, scoringEndpointUrl, rpcUrlIndexContext, contractAddress, receiveAccountPrivateKey, walletContext } from '../App';
 import getWallet from '../components/getWallet';
 import transferEther  from '../components/transferEther';
 
@@ -14,8 +14,8 @@ const User = () => {
   const [balance, setBalance] = useState<string>("0.0");
   const [receivedEthStatus, setReceivedEthStatus] = useState<"ETHを受け取る" | "ETHを受け取り中" | "ETHを受け取り完了" | "ETHの受け取りに失敗" | "ETHの残高は十分です">("ETHを受け取る");
 
-  // This function is called when the user clicks the "ウォレットを作成" button
-  const createWallet = async () => {
+  // ウォレットの初期化
+  const initWallet = async () => {
     const {wallet, rpcUrlIndex} = await getWallet(rpcUrls, localStorage);
     if (rpcUrlIndex === -1) {
       setRpcUrlIndex(-1);
@@ -30,15 +30,13 @@ const User = () => {
     setRpcUrlIndex(rpcUrlIndex);
   }
 
-  // This function is called when the user clicks the "ETHを受け取る" button
+  // ETH受け取り処理
   const getEther = async () => {
     if (wallet == undefined || receivedEthStatus != "ETHを受け取る") { return; }
     setReceivedEthStatus("ETHを受け取り中");
-    const teacher = new Wallet(receiveAccountPrivateKey, wallet?.provider);
-    const amount = 0.1;
     try {
-      const resultMessage = await transferEther(teacher, wallet, amount);
-      if (resultMessage === "残高は十分です") {
+      const result = await transferEther(receiveAccountPrivateKey, wallet, scoringEndpointUrl);
+      if (result === false) {
         setReceivedEthStatus("ETHの残高は十分です");
       } else {
         setReceivedEthStatus("ETHを受け取り完了");
@@ -48,7 +46,7 @@ const User = () => {
       setReceivedEthStatus("ETHの受け取りに失敗");
     }
 
-    // Update the balance after receiving ether
+    // 残高の更新
     const provider = wallet.provider;
     if (provider == null) { return; }
     const balance = await provider.getBalance(wallet.address);
@@ -57,10 +55,7 @@ const User = () => {
 
   // Update the wallet details when the component mounts or when the wallet changes
   useEffect(() => {
-    const init = async () => {
-      await createWallet();
-    }
-    init();
+      initWallet();
   }, []);
 
   return (
