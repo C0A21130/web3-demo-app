@@ -6,6 +6,8 @@ interface Token {
   name: string;
   to: string;
   from: string;
+  description: string | null;
+  imageUrl: string | null;
 }
 
 interface TransferLog {

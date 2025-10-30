@@ -23,12 +23,14 @@ describe("TokenNameのsetとGet", function () {
         const { SsdlabToken, teacher, student1 } = await loadFixture(deployFixture);
         const tokenName: any = "Frends Lost Token";
         
-        // student1がNFTを発行数
-        const tokenId = await SsdlabToken.safeMint(student1.address, tokenName);
+        // student1がNFTを発行
+        const tokenURI = "http://10.203.92.63:5001/api/v0/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG";
+        const tokenID= await SsdlabToken.safeMintIPFS(student1.address,tokenName,tokenURI);
+    
         // console.log(ethers.formatEther(tokenId.value));
         // tokenIdが1になっているか確認
         expect(await SsdlabToken.balanceOf(student1.address)).to.equal(1);
-        
-        expect(await SsdlabToken.getTokenName(tokenId.value)).to.equal(tokenName);
+        console.log("tokenID:", tokenID.value);
+        expect(await SsdlabToken.getTokenName(tokenID.value)).to.equal(tokenName);
     });
 });

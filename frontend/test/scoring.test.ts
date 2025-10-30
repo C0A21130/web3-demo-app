@@ -28,7 +28,16 @@ describe('scoring', () => {
     if (myWallet == undefined || targetWallet == undefined) { return; }
 
     // トークンをミントして転送する
-    const txReceipt = await putToken(myWallet, contractAddress, 'Scoring Test Token');
+    const params = {
+      name: 'Frends Lost Token', 
+      image: null, 
+      description: "'Scoring Test Token", 
+      wallet: myWallet,
+      contractAddress: contractAddress, 
+      client: null, 
+      ipfsApiUrl: null
+    };
+    const txReceipt = await putToken(params);
     await delay(500);
     const tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
     await transferToken(myWallet, contractAddress, targetWallet.address, tokenId);
@@ -54,7 +63,16 @@ describe('scoring', () => {
     if (myWallet == undefined || targetWallet == undefined || target2Wallet == undefined) { return; }
 
     // トークンをミントして転送する
-    const txReceipt = await putToken(myWallet, contractAddress, 'Scoring Test Token');
+    const params = {
+      name: 'Frends Lost Token', 
+      image: null, 
+      description: "'Scoring Test Token", 
+      wallet: myWallet,
+      contractAddress: contractAddress, 
+      client: null, 
+      ipfsApiUrl: null
+    };
+    const txReceipt = await putToken(params);
     await delay(500);
     const tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
     await transferToken(myWallet, contractAddress, targetWallet.address, tokenId);
@@ -78,9 +96,18 @@ describe('scoring', () => {
     const targetWallet = new Wallet(targetKey, provider);
     if (provider == null) { return; }
     if (myWallet == undefined) { return; }
-
+    
     // トークンをミントして転送する
-    const txReceipt = await putToken(myWallet, contractAddress, 'Scoring Test Token');
+    const params = {
+      name: 'Frends Lost Token', 
+      image: null, 
+      description: "'Scoring Test Token", 
+      wallet: myWallet,
+      contractAddress: contractAddress, 
+      client: null, 
+      ipfsApiUrl: null
+    };
+    const txReceipt = await putToken(params);
     await delay(500);
     const tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
     await transferToken(myWallet, contractAddress, targetWallet.address, tokenId);
@@ -102,7 +129,16 @@ describe('scoring', () => {
     if (myWallet == undefined || targetWallet == undefined) { return; }
 
     // トークンをミントして転送する
-    const txReceipt = await putToken(myWallet, contractAddress, 'Scoring Test Token');
+    const params = {
+      name: 'Frends Lost Token', 
+      image: null, 
+      description: "'Scoring Test Token", 
+      wallet: myWallet,
+      contractAddress: contractAddress, 
+      client: null, 
+      ipfsApiUrl: null
+    };
+    const txReceipt = await putToken(params);
     await delay(500);
     const tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
     await transferToken(myWallet, contractAddress, targetWallet.address, tokenId);

@@ -19,6 +19,9 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
 
     // ウォレットアドレスのマッピング
     mapping(string => address) private _userAddresses;
+    
+    // トークンURIのマッピング
+    mapping(uint256 => string) private _tokenURIs;
 
     constructor(address teacher, address student) ERC721("MyToken", "") Scoring(teacher) {
         _grantRole(DEFAULT_ADMIN_ROLE, teacher);
@@ -33,6 +36,16 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
         return tokenId;
     }
 
+    function safeMintIPFS(address to, string memory _tokenName, string memory _tokenURI) public returns (uint256) {
+        uint256 tokenId = _nextTokenId;
+        _safeMint(to, tokenId);
+        setTokenName(tokenId, _tokenName);
+        _setTokenURI(tokenId, _tokenURI);
+        _nextTokenId++;
+        return tokenId;
+    }
+    
+    // The following functions are overrides required by Solidity.
     function transferFrom(address from, address to, uint256 tokenId) public override {
         super.transferFrom(from, to, tokenId);
         // 取引履歴の更新
@@ -57,11 +70,23 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
     function setTokenName(uint256 tokenId, string memory tokenName) public {
         _tokenNames[tokenId] = tokenName;
     }
+
+    // トークンURIを設定する関数
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
+        require(tokenId >= 0, "ERC721Metadata: URI set of nonexistent token");
+        _tokenURIs[tokenId] = _tokenURI;
+    }
     
     // トークン名を取得する関数
     function getTokenName(uint256 tokenId) public view returns (string memory) {
         return _tokenNames[tokenId];
     }
+
+    // トークンURIを取得する関数
+    function getTokenURI(uint256 tokenId) public view returns (string memory) {
+        return _tokenURIs[tokenId];
+    }
+
 
     // 交換のトークンIDを設定する関数
     function setExchangeTokenId(uint256 tokenId, uint256 exchangeTokenId) public {
