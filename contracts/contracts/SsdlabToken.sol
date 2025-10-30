@@ -32,6 +32,20 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
         return tokenId;
     }
 
+    /// IPFS URI付きでトークンを発行する関数
+    /// @param to トークンを受け取るアドレス
+    /// @param _tokenName トークン名
+    /// @param _tokenURI トークンのIPFS URI
+    /// @return tokenId ミントされたトークンのID
+    function safeMintIPFS(address to, string memory _tokenName, string memory _tokenURI) public returns (uint256) {
+        uint256 tokenId = _nextTokenId;
+        _safeMint(to, tokenId);
+        setTokenName(tokenId, _tokenName);
+        _setTokenURI(tokenId, _tokenURI);
+        _nextTokenId++;
+        return tokenId;
+    }
+    
     /// トークンを転送する関数
     /// @param from 送信元アドレス
     /// @param to 送信先アドレス

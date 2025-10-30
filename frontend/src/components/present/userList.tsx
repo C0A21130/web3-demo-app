@@ -1,29 +1,28 @@
 import { Wallet, HDNodeWallet } from 'ethers';
 import { Card, Button, Text, RingProgress } from '@mantine/core';
 import { useEffect } from 'react';
+import fetchCredential from '../credential/fetchCredential';
 import fetchScores from '../scoring/fetchScores';
 
 interface UserListProps {
   wallet: Wallet | HDNodeWallet | undefined;
   contractAddress: string;
+  credentialContractAddress: string;
   credentials: UserCredential[];
   setCredentials: React.Dispatch<React.SetStateAction<UserCredential[]>>;
   setAddress: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const UserList = (props: UserListProps) => {
-  const { wallet, credentials, setCredentials, setAddress, contractAddress } = props;
+  const { wallet, contractAddress, credentialContractAddress, credentials, setCredentials, setAddress } = props;
 
-  // SBTと信用スコアを一覧として取得する(TODO: 実装予定)
-  const fetchCredentials = async (): Promise<UserCredential[]> => {
-    if (wallet == undefined) { return []; }
+  // SBTと信用スコアを一覧として取得する
+  const fetchCredentials = async (): Promise<void> => {
+    if (wallet == undefined || credentials.length > 0) { return; } // 既に取得済みなら会員証一覧を再取得しない
 
-    // SBTによる会員証一覧を取得する(TODO: 実装予定)
-    let newCredentials =  [
-      { tokenId: 1, userName: 'Alice', address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266', trustScore: 0.0 },
-      { tokenId: 2, userName: 'Bob', address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', trustScore: 0.0 },
-      { tokenId: 3, userName: 'Charlie', address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC', trustScore: 0.0 },
-    ];
+    // SBTによる会員証一覧を取得する
+    let newCredentials =  await fetchCredential(wallet, credentialContractAddress);
+    newCredentials = newCredentials.filter(credential => credential.address.toLowerCase() !== wallet.address.toLowerCase());
 
     // 取得した会員証一覧を元に信用スコアを取得する
     const targetAddressList = newCredentials.map(credential => credential.address);
@@ -35,16 +34,11 @@ const UserList = (props: UserListProps) => {
       trustScore: scores.targetScores[index] || 0.0,
     }));
 
-    return newCredentials;
-  }
+    setCredentials(newCredentials);
+  };
 
   useEffect(() => {
-    if (credentials.length > 0) { return; } // 既に取得済みなら再取得しない
-    const initCredentials = async () => {
-      const userCredentials = await fetchCredentials();
-      setCredentials(userCredentials);
-    };
-    initCredentials();
+    fetchCredentials();
   }, []);
 
   return (

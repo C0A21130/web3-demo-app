@@ -26,22 +26,31 @@ describe('scoring', () => {
     if (provider == null) { return; }
     if (wallet == undefined || wallet2 == undefined || wallet3 == undefined || wallet4 == undefined) { return; }
 
-    // トークンをミントして転送する(wallet -> wallet2)
-    let txReceipt = await putToken(wallet, contractAddress, 'Scoring Test Token');
+    // トークンをミントして転送する
+    const params = {
+      name: "Scoring Test Token", 
+      image: null, 
+      description: "Scoring Test Token", 
+      wallet: wallet,
+      contractAddress: contractAddress, 
+      client: null, 
+      ipfsApiUrl: null
+    };
+    let txReceipt = await putToken(params);
     await delay(500);
     let tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
     await transferToken(wallet, contractAddress, wallet2.address, tokenId);
     await delay(500);
 
     // トークンをミントして転送する(wallet -> wallet3)
-    txReceipt = await putToken(wallet, contractAddress, 'Scoring Test Token');
+    txReceipt = await putToken(params);
     await delay(500);
     tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
     await transferToken(wallet, contractAddress, wallet3.address, tokenId);
     await delay(500);
 
     // トークンをミントして転送する(wallet -> wallet4)
-    txReceipt = await putToken(wallet, contractAddress, 'Scoring Test Token');
+    txReceipt = await putToken(params);
     await delay(500);
     tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
     await transferToken(wallet, contractAddress, wallet4.address, tokenId);
@@ -103,7 +112,16 @@ describe('scoring', () => {
     // スコアを検証して取引がブロックされることを確認する
     const verifyScoreResult = await verifyScore(wallet2, wallet.address, contractAddress);
     expect(verifyScoreResult.isAuthorized).toBe(false);
-    const txReceipt = await putToken(wallet, contractAddress, 'Scoring Test Token Final');
+    const params = {
+      name: "Scoring Test Token",
+      image: null,
+      description: "Scoring Test Token",
+      wallet: wallet,
+      contractAddress: contractAddress,
+      client: null,
+      ipfsApiUrl: null
+    };
+    const txReceipt = await putToken(params);
     await delay(500);
     const tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
     const result = await transferToken(wallet2, contractAddress, wallet.address, tokenId);
@@ -156,7 +174,16 @@ describe('scoring', () => {
       }
 
       // トークンを発行して転送する
-      const txReceipt = await putToken(myWallet.wallet, contractAddress, 'Scoring Test Token');
+      const params = {
+        name: "Scoring Test Token",
+        image: null,
+        description: "Scoring Test Token",
+        wallet: wallet,
+        contractAddress: contractAddress,
+        client: null,
+        ipfsApiUrl: null
+      };
+      const txReceipt = await putToken(params);
       await delay(500);
       const tokenId = txReceipt.logs[txReceipt.length - 1].args[2];
       await transferToken(myWallet.wallet, contractAddress, targetWallet.wallet.address, tokenId);
