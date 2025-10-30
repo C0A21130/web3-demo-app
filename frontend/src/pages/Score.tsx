@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Wallet, JsonRpcSigner, BrowserProvider } from 'ethers';
 import { Group, Text, Paper, Container, Button, Table, TextInput} from '@mantine/core';
-import fetchTransferLogs from '../components/log-modules/fetchTransferLogs';
-import postTransferLogs from '../components/log-modules/postTransferLogs';
+import fetchTransferLogs from '../components/scoring/fetchTransferLogs';
+import postTransferLogs from '../components/scoring/postTransferLogs';
 
 declare global {
   interface Window {

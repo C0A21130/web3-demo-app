@@ -88,19 +88,14 @@ describe('token', () => {
   it("should transfer token with `getWallet.ts`", async () => {
     // walletの取得
     const localStorage = localStorageMock;
-    const localStorage2 = localStorageMock;
     const user1 = await getWallet(rpcUrls, localStorage);
-    const user2 = await getWallet(rpcUrls, localStorage2);
-
-    if (user1 === undefined || user2 === undefined) { return; }
+    if (user1 === undefined) { return; }
 
     // Etherを送信しておく
     const provider = user1.wallet.provider;
     if (provider === null) { return; }
-    const teacherWallet = new Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
-    await sendEther(teacherWallet, user1.wallet.address, '0.1');
-    await delay(500);
-    await sendEther(teacherWallet, user2.wallet.address, '0.1');
+    const agentWallet = new Wallet("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider);
+    await sendEther(agentWallet, user1.wallet.address, '0.1');
     await delay(500);
 
     // NFTのミント
@@ -118,18 +113,18 @@ describe('token', () => {
 
     // NFTの転送
     const tokenId = txReceipt.logs[0].args[2];
-    await transferToken(user1.wallet, contractAddress, user2.wallet.address, tokenId);
+    await transferToken(user1.wallet, contractAddress, agentWallet.address, tokenId);
     await delay(500);
 
     // トークンが正常に転送されたかチェック
-    const tokens = await fetchTokens(rpcUrls[0], user2.wallet, contractAddress, "receive");
+    const tokens = await fetchTokens(rpcUrls[0], agentWallet, contractAddress, "receive");
     const token = tokens[0][tokens[0].length - 1];
     expect(tokens[0].length).toBeGreaterThanOrEqual(1);
     expect(token.tokenId).toBe(Number(tokenId));
-    expect(token.owner).toBe(user2.wallet.address);
+    expect(token.owner).toBe(agentWallet.address);
     expect(token.name).toBe('Frends Lost Token');
     expect(token.from).toBe(user1.wallet.address);
-    expect(token.to).toBe(user2.wallet.address);
+    expect(token.to).toBe(agentWallet.address);
   }, 30000);
   
 });

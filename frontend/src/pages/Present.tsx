@@ -1,12 +1,15 @@
 import { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatEther } from 'ethers';
-import { Paper, Text, TextInput, Button, Container, Alert, Flex} from '@mantine/core';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
-import { contractAddress, walletContext, ipfsApiUrl } from '../App';
-import putToken from '../components/putToken';
-import transferToken from '../components/transferToken';
+import { Paper, Text, TextInput, Button, Container, Alert, Flex } from '@mantine/core';
+import { ipfsApiUrl, walletContext, contractAddress, credentialContractAddress } from '../App';
 import CreatePhoto from '../components/present/createPhoto';
 import UserList from '../components/present/userList';
+import putToken from '../components/putToken';
+import transferToken from '../components/transferToken';
+import verifyCredential from '../components/credential/verifyCredential';
+import verifyScore from '../components/scoring/verifyScore';
 
 const Present = () => {
   const [myAddress, setMyAddress] = useState('0x000');
@@ -20,10 +23,20 @@ const Present = () => {
   const [credentials, setCredentials] = useState<UserCredential[]>([]);
   const [presentStatus, setPresentStatus] = useState<"画像作成中" | "感謝を送信する" | "感謝を送信中" | "感謝を送信失敗" | "感謝を送信完了" >("画像作成中");
   const [wallet] = useContext(walletContext);
+  const navigate = useNavigate();
+
+  // 処理を遅延させる関数
+  const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
   const updateWalletDetails = async () => {
+    // ウォレットが未接続の場合はユーザーページへ遷移する
+    if (!wallet) {
+      navigate('/user'); 
+      return;
+    }
+
     // ウォレットアドレスを取得する
-    if (wallet == undefined) { return; }
+    if (myBalance != '0.0') { return; }
     setMyAddress(wallet.address);
 
     // 残高を確認する
@@ -47,21 +60,31 @@ const Present = () => {
     }
   }
 
+  // 送信前に検証を行う
+  const isValid = async (): Promise<boolean> => {
+    if (wallet == undefined) { return false; }
+    
+    // 会員証が発行されているか検証する
+    const tokenId = credentials.find(cred => cred.address.toLowerCase() === address.toLowerCase())?.tokenId;
+    const isValidCredential = await verifyCredential(wallet, credentialContractAddress, tokenId ? tokenId : -1, address);
+    if (!isValidCredential) {
+      if (!window.confirm("送信先のアドレスは会員証を持っていません。本当に取引して問題ないですか？")) { return false; }
+    }
+
+    // 自身と取引相手の信用スコアを確認する
+    const isValidScore = await verifyScore(wallet, address, contractAddress);
+    if (!isValidScore) {
+      if (!window.confirm("取引相手の信用スコアが不足しています。本当に取引して問題ないですか？")) { return false; }
+    }
+    
+    return true;
+  }
+
   // 感謝を送信する(TODO: 実装予定)
   const presentToken = async () => {
-    // 会員証が発行されているか検証する(TOODO: SBT実装予定)
-    const isValidCredential = true;
-    if (!isValidCredential) {
-      if (!window.confirm("送信先のアドレスは会員証を持っていません。本当に取引して問題ないですか？")) { return; }
-    }
+    if (!await isValid()) { return; } // 検証に失敗した場合は処理を中断する
 
-    // 自身と取引相手の信用スコアを確認する(TOODO: Trustスコア実装予定)
-    const checkScore = true;
-    if (!checkScore) {
-      if (!window.confirm("取引相手の信用スコアが不足しています。本当に取引して問題ないですか？")) { return; }
-    }
-
-    // IPFSに画像をアップロードしてトークンを送信する
+    // IPFSに画像をアップロードしてトークンを送信する(TODO: 実装予定)
     if (wallet == undefined || presentStatus != "感謝を送信する") { return; }
     setPresentStatus("感謝を送信中");
     try {
@@ -75,6 +98,7 @@ const Present = () => {
         ipfsApiUrl: ipfsApiUrl
       };
       const tx = await putToken(params);
+      await delay(3000);
       const tokenId = tx.logs[0].args[2];
       await transferToken(wallet, contractAddress, address, tokenId);
       await setPresentStatus("感謝を送信完了");
@@ -134,7 +158,7 @@ const Present = () => {
           <Button variant="filled" color="blue" fullWidth className="mt-4" onClick={() => presentToken()}>
             {presentStatus}
           </Button>
-          <UserList credentials={credentials} setCredentials={setCredentials} setAddress={setAddress} />
+          <UserList wallet={wallet} credentials={credentials} setCredentials={setCredentials} setAddress={setAddress} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
         </Flex>
       </Paper>
       

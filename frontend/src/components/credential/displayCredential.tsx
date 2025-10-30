@@ -2,34 +2,38 @@ import { useEffect, useState } from 'react';
 import { Paper, Text, TextInput, Button, Flex, Alert } from '@mantine/core';
 import { IconCreditCard } from '@tabler/icons-react';
 import { Wallet, HDNodeWallet } from 'ethers';
+import { fetchCredential } from './fetchCredential';
+import { issueCredential } from './issueCredential';
+import fetchScores from '../scoring/fetchScores';
 
 interface DisplayCredentialProps {
   hidden: boolean;
   wallet: Wallet | HDNodeWallet | undefined;
   contractAddress: string;
+  credentialContractAddress: string;
 }
 
 const DisplayCredential = (props: DisplayCredentialProps) => {
-  const { hidden, wallet, contractAddress } = props;
+  const { hidden, wallet, contractAddress, credentialContractAddress } = props;
   const [credential, setCredential] = useState<UserCredential>();
   const [inputUserName, setInputUserName] = useState<string>("");
   const [credentialStatus, setCredentialStatus] = useState<"会員証を発行する" | "会員証を発行中" | "会員証の発行完了" | "会員証の発行に失敗">("会員証を発行する");
 
   // 会員証の情報を取得する関数
   const initCredential = async () => {
-    // 会員証を取得する処理(TODO: 実装予定)
-    const fetchCredential: UserCredential = {
-      tokenId: 1,
-      userName: inputUserName,
-      address: wallet?.address || "0x0000000000000000000000",
-      trustScore: 0.0
-    };
+    if (wallet == undefined) { return; }
 
-    // 信用スコアを取得する処理(TODO: 実装予定)
-    const scores = {myScore: 85, targetScores: []};
-    fetchCredential.trustScore = scores.myScore;
+    // 会員証を取得する処理
+    const credentials = await fetchCredential(wallet, credentialContractAddress);
+    const myCredential = credentials.find((cred) => cred.address.toLowerCase() === wallet.address.toLowerCase());
+    if (!myCredential) { return; }
 
-    setCredential(fetchCredential);
+    // 信用スコアを取得する処理
+    const scores = await fetchScores([], wallet, contractAddress);
+    myCredential.trustScore = scores.myScore;
+
+    setCredential(myCredential);
+    setCredentialStatus("会員証の発行完了");
   }
 
   // 会員証を発行するボタンがクリックされたときの処理(TODO: 実装予定)
@@ -39,8 +43,10 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
       setCredentialStatus("会員証の発行に失敗");
       return;
     }
+
+    // 会員証を発行する
     try {
-      // ここに会員証発行のロジックを実装
+      await issueCredential(wallet, credentialContractAddress, inputUserName);
       setCredentialStatus("会員証の発行完了");
     } catch (error) {
       console.error("会員証の発行に失敗:", error);
@@ -51,10 +57,8 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
   }
 
   useEffect(() => {
-    if (credentialStatus === "会員証を発行する" && wallet !== undefined) {
-      initCredential();
-    }
-  }, []);
+    initCredential();
+  }, [wallet]);
 
   return (
     <Paper shadow="sm" withBorder className="p-4 mt-6" hidden={hidden}>
@@ -67,7 +71,7 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
           会員証の発行
         </Text>
         <TextInput
-          placeholder="ユーザー名"
+          placeholder="登録するユーザー名を入力してください"
           className="mb-4"
           value={inputUserName}
           onChange={(event) => setInputUserName(event.currentTarget.value)}
@@ -88,6 +92,9 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
       </Flex>
       <Alert title="会員証が発行されていません" color="yellow" className="mt-4" hidden={credentialStatus === "会員証の発行完了"}>
         会員証を発行することでありがトークンを受け取りやすくなります
+      </Alert>
+      <Alert title="会員証の発行に失敗" color="red" className="mt-4" hidden={credentialStatus !== "会員証の発行に失敗"}>
+        会員証の発行に失敗しました。ユーザー名を入力・変更してもう一度お試しください。
       </Alert>
     </Paper>
   );
