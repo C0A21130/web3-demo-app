@@ -4,20 +4,19 @@
 
 スマートコントラクトは `contracts/`ディレクトリの直下の `contracts/contracts` に配置する。
 スマートコントラクトの説明を行う。
-- Lock.solは初期化時に作成されるコントラクトである。
-- SsdlabToken.solはERC721を継承し、デモアプリで必要となるマップ機能と送金機能のコードを追加したコードである
 
-　![スマートコントラクトの関数の説明を行う](../docs/images/class.png)
-
+- [SsdlabToken.sol](./contracts/SsdlabToken.sol) はERC721を継承し、デモアプリで必要となるマップ機能と送金機能のコードを追加したコードである
   - tokenNames,userAddresses:ユーザのニックネームとユーザアドレスを紐づけることで、ユーザのニックネームをユーザアドレスとして処理することができる
   - constructor:コントラクトをデプロイする際に、管理者（teacher）と学生（student）のアドレスを設定する
-  - safeMint:アドレスとトークンの名前を使いNFTを発行する
-  - supportsInterface:supportsInterface をオーバーライドし、コントラクトが特定のインターフェースをサポートしているかどうかを確認するために使用する
-  - sendtransaction:トークンを送金するために使用する
-  - setTokenName:トークンの名前を設定する
-  - getTokenName:トークンの名前を取得する
-  - setUserAddress:ユーザアドレスを辞書に登録する
-  - getUserAddress:ユーザアドレスを辞書から取得する
+  - safeMint:          アドレスとトークンの名前を使いNFTを発行する
+  - supportsInterface: コントラクトが特定のインターフェースをサポートしているかどうかを確認するために使用する
+  - sendtransaction:   トークンを送金するために使用する
+  - setTokenName:      トークンの名前を設定する
+  - getTokenName:      トークンの名前を取得する
+  - setUserAddress:    ユーザアドレスを辞書に登録する
+  - getUserAddress:    ユーザアドレスを辞書から取得する
+- SBT(SoulBound Token)に関しては[SBT.md](./../docs/SBT.md) の仕様書を参照してください
+- 信用スコアに関しては[score.md](./../docs/scoring.md) の仕様書を参照してください
 
 ## Set Up
 

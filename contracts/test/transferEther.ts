@@ -1,27 +1,55 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { SsdlabToken__factory } from "../typechain-types";
-import { token } from "../typechain-types/@openzeppelin/contracts";
 
+// Fixtureのデプロイ関数
 async function deployFixture() {
-    const [teacher, student1, student2] = await ethers.getSigners();
-    const teacherAddress = await teacher.getAddress();
-    const student1Address = await student1.getAddress();
-    // const student2Address = await student2.getAddress(); // Removed as it's unused
-    const SsdlabToken = await ethers.deployContract("SsdlabToken", [teacherAddress, student1Address]);
-    
-    return { SsdlabToken, teacher, student1, student2 };
+    const [agent] = await ethers.getSigners();
+    const agentAddress = await agent.getAddress();
+    const SsdlabToken = await ethers.deployContract("SsdlabToken", [agentAddress]);
+    return { SsdlabToken, agent };
 }
 
-describe("Etherのtransfer", function () {
-    it("should set and get the token name correctly", async function () {
-        const { SsdlabToken, teacher, student1 } = await loadFixture(deployFixture);
-        const balancet = await ethers.provider.getBalance(student1.address);
-        console.log(balancet);
-        // teacherがstudent1にEtherを送る
-        await SsdlabToken.sendTransaction(student1.address, { value: ethers.parseEther("0.1") });
-        const balance = await ethers.provider.getBalance(student1.address);
-        console.log(balance);
+describe("TransferEther", function () {
+
+    it("コントラクトへの送金処理", async function () {
+        // スマートコントラクトのデプロイ
+        const { SsdlabToken, agent } = await loadFixture(deployFixture);
+
+        // コントラクトへ0.3ether送金
+        const transactionHash = await agent.sendTransaction({
+            to: SsdlabToken.target,
+            value: ethers.parseEther("0.3"),
+        });
+        await transactionHash.wait();
+        const contractBalance = await ethers.provider.getBalance(SsdlabToken.target);
+
+        // コントラクトの残高が0.3etherであることを確認
+        expect(contractBalance).to.equal(ethers.parseEther("0.3"));
+    });
+
+    it("コントラクトからfaucet関数を利用した送金処理", async function () {
+        // スマートコントラクトのデプロイ
+        const { SsdlabToken, agent } = await loadFixture(deployFixture);
+
+        // コントラクトへ0.3ether送金
+        const transactionHash = await agent.sendTransaction({
+            to: SsdlabToken.target,
+            value: ethers.parseEther("0.4"),
+        });
+        await transactionHash.wait();
+
+        // ウォレットの作成
+        const wallet = ethers.Wallet.createRandom();
+
+        // コントラクトから0.3ether送金
+        const balanceBefore = await ethers.provider.getBalance(wallet.address);
+        const tx = await SsdlabToken.connect(agent).faucet(wallet.address);
+        await tx.wait();
+        const balanceAfter = await ethers.provider.getBalance(wallet.address);
+
+        // ウォレットの残高が0.3ether増加していることを確認
+        const balanceDiff = balanceAfter - balanceBefore;
+        console.log(`Balance difference: ${ethers.formatEther(balanceDiff)} ETH`);
     });
 });

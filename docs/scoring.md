@@ -15,82 +15,31 @@
 - [Centrality.ts](/contracts/test/scoring/Centrality.ts): Centrality.solのテストコード
 - [IERC4974.sol](/contracts/contracts/scoring/IERC4974.sol): ERC4974のインターフェース
 
-```mermaid
-classDiagram
-    class IERC165 {
-        <<interface>>
-        +supportsInterface(bytes4 interfaceID) bool
-    }
-
-    class IERC4974 {
-        <<interface>>
-        +setOperator(address _operator)
-        +rate(address _rated, int8 _rating)
-        +removeRating(address _removed)
-        +ratingOf(address _rated) int8
-    }
-
-    class Centrality {
-        +mapping~address => address[]~ adjacencyList
-        +address[] vertices
-        +mapping~address => bool~ vertexExists
-        +addVertex(address user)
-        +addEdge(address userA, address userB)
-        +getDegree(address user) uint256
-        +calculateDegreeCentrality(address user) int8
-        +getAllDegreeCentralities() (address[], int8[])
-        +getConnections(address user) address[]
-        +isConnected(address userA, address userB) bool
-        +getUserCount() uint256
-        +getTotalConnections() uint256
-        +getAllUsers() address[]
-    }
-
-    class Scoring {
-        -mapping~address => bool~ operators
-        -mapping~address => int8~ ratings
-        -mapping~address => int8~ scores
-        +constructor(address _operator)
-        +supportsInterface(bytes4 interfaceID) bool
-        +setOperator(address _operator)
-        +rate(address _rated, int8 _rating)
-        +removeRating(address _removed)
-        +ratingOf(address _rated) int8
-        +getScore(address _user) int8
-        +verifyScore(address myAddress, address targetAddress) bool
-        -onlyOperator() modifier
-    }
-
-    IERC4974 --|> IERC165 : extends
-    Scoring --|> Centrality : inherits
-    Scoring ..|> IERC4974 : implements
-```
-
 ## Centrality
 
 記号の定義
 - 頂点: $V = \{ v_1, u_2, \dots, v_n \}$
 - 辺: $E \subseteq \{ \{ u, v \} \mid u, v \in V \}$
 - グラフ: $G = \{ V, E \}$
-- 次数: 接続されている辺の数
+- 次数: 頂点 $v$ の接続されている辺の数
     - $\deg(v) = |\{ e \in E \mid v \in e \}|$
 
-次数中心性
+次数中心性の計算方法
 - 次数が多い頂点を中心とする
-    - 次数：頂点に対する辺の数
 - 隣接する頂点の重みを一定とする
-- 頂点$i$の次数中心性を$c_d(i)$とする
+- 頂点 $i$ の次数中心性を $c_d(i)$ とする
 
 ```math
-c_{d}(v_i) = \frac{\deg(v_i)}{|V| - 1}
+c_{d}(v_i) = \frac{\deg(v_i)}{\sum_{u \in V} \deg(u_i)}
 ```
 
 ### Centrality.sol
 
 Solidityで次数中心性を実装する際の設計方針：
 
-1. **グラフデータ構造**
-   - `mapping(address => address[]) public adjacencyList`: 隣接リストでユーザーアドレス間の接続を管理
+1. **グラフデータ構造（多重グラフ対応）**
+   - `mapping(address => address[]) public adjacencyList`: 隣接リストでユーザーアドレス間の接続を管理（多重辺対応）
+   - `mapping(address => mapping(address => uint256)) public edgeCount`: 同一ユーザー間の辺の数を管理
    - `address[] public vertices`: 存在するユーザーアドレスのリスト
    - `mapping(address => bool) public vertexExists`: ユーザーアドレスの存在確認用
 
@@ -99,37 +48,41 @@ Solidityで次数中心性を実装する際の設計方針：
    // ユーザーアドレスを頂点として追加
    function addVertex(address user) public
    
-   // ユーザー間の辺を追加（無向グラフ）
-   function addEdge(address userA, address userB) public
+   // ユーザー間の辺を追加（無向多重グラフ）
+   function addEdge(address userA, address userB) public returns (uint256 edgeNumber)
    
    // 指定ユーザーの次数を取得
    function getDegree(address user) public view returns (uint256)
    
-   // 指定ユーザーの次数中心性を計算（1000倍したuint256で返す）
-   // 計算式: 次数中心性 = (ユーザーの次数 * 1000) / (総ユーザー数 - 1)
-   function calculateDegreeCentrality(address user) public view returns (uint256)
+   // 2人のユーザー間の辺の数を取得
+   function getEdgeCount(address userA, address userB) public view returns (uint256)
+   
+   // 指定ユーザーの次数中心性を計算（100倍したint8で返す）
+   function calculateDegreeCentrality(address user) public view returns (int8)
    
    // 全ユーザーの次数中心性を計算
-   function getAllDegreeCentralities() public view returns (address[] memory, uint256[] memory)
+   function getAllDegreeCentralities() public view returns (address[] memory, int8[] memory)
    
    // ユーザーの接続相手を取得
    function getConnections(address user) public view returns (address[] memory)
+   
+   // 2人のユーザーが接続されているかチェック
+   function isConnected(address userA, address userB) public view returns (bool)
+   
+   // 総ユーザー数を取得
+   function getUserCount() public view returns (uint256)
+   
+   // 総接続数を取得
+   function getTotalConnections() public view returns (uint256)
+   
+   // すべてのユーザーアドレスを取得
+   function getAllUsers() public view returns (address[] memory)
    ```
 
 3. **実装上の考慮事項**
-   - Solidityでは浮動小数点数が使えないため、1000倍して整数で扱う
-   - ガス効率を考慮した隣接リスト構造を使用
-   - 重複辺の防止機能を実装（同じユーザー間の重複接続を防ぐ）
-   - イベントを使用してユーザー間の接続を記録
-   - ゼロアドレス（0x0）の頂点追加を防ぐ
+   - Solidityでは浮動小数点数が使えないため、100倍して整数で扱う
+   - 多重辺対応：同一ユーザー間の複数の接続（取引）を許容する
    - 自分自身への接続（自己ループ）を防ぐ
-
-4. **イベント定義**
-   ```solidity
-   event UserAdded(address indexed user);
-   event ConnectionAdded(address indexed userA, address indexed userB);
-   event ConnectionRemoved(address indexed userA, address indexed userB);
-   ```
 
 ### Centrality.ts
 
@@ -139,64 +92,59 @@ Hardhatを使用したテストの設計方針：
 
 1. **テストケース構成**
    - **基本機能テスト**: ユーザーアドレスの追加、ユーザー間接続の追加、次数計算
+   - **多重辺テスト**: 同一ユーザー間の複数接続と辺カウント機能
    - **次数中心性計算テスト**: 各種グラフパターンでの正確性検証
    - **エラーハンドリングテスト**: 存在しないユーザーへの操作、ゼロアドレス、自己ループ
-   - **ガス効率テスト**: 大規模ユーザーネットワークでのガス消費量測定
 
 2. **主要テストケース**
 
-   **テスト環境設定**
-   - Hardhat + Chai + ethers.jsを使用
-   - 各テスト前にScoringコントラクトをデプロイ
-   - 5つのユーザーアドレス（owner, addr1, addr2, addr3, addr4）を準備
-
    **基本機能テスト**
-   - コントラクトのデプロイ確認
    - 初期状態でユーザー数が0であることを確認
    - ユーザーアドレスの追加機能
-   - ユーザー間接続の追加・削除機能
+   - ユーザー間接続の追加機能（多重辺対応）
+
+   **多重辺テスト**
+   - 同一ユーザー間への複数接続の追加
+   - `getEdgeCount`による辺数の確認
+   - 多重辺が次数計算に正しく反映されること
 
    **次数中心性計算テスト**
    
    *線形グラフテスト（4ユーザー）*
-   - 接続: addr1-addr2-addr3-addr4
+   - 接続: addr1-addr2-addr3-addr4 (総接続数=3)
    - 期待値: 
-        - addr1（端点）: 333/1000 (33.3%)
-        - addr2（中間）: 666/1000 (66.6%)
-        - addr3（中間）: 666/1000 (66.6%)
-        - addr4（端点）: 333/1000 (33.3%)
+        - addr1: 次数=1, 中心性= $\frac{1 \times 100}{3}=33$
+        - addr2: 次数=2, 中心性= $\frac{2 \times 100}{3}=66$
+        - addr3: 次数=2, 中心性= $\frac{2 \times 100}{3}=66$
+        - addr4: 次数=1, 中心性= $\frac{1 \times 100}{3}=33$
 
    *完全グラフテスト（4ユーザー）*
    - 接続: 全ユーザーが相互接続
-   - 期待値: 全ユーザーで1000/1000 (100%)
+   - 期待値: 次数=6, 総接続数=12, 中心性= $\frac{6 \times 100}{12}=50$
 
    *星型グラフテスト（4ユーザー）*
    - 接続: 1人の中心ユーザーが他の3人と接続
    - 期待値:
-        - 中心ユーザー: 1000/1000 (100%)
-        - 周辺ユーザー: 333/1000 (33.3%)
+        - 中心ユーザー(addr1): 次数=3, 総接続数=3, 中心性= $\frac{3 \times 100}{3}=100$
+        - 周辺ユーザー: 次数=1, 総接続数=3, 中心性= $\frac{1 \times 100}{3}=33$
+
+   *多重辺テスト*
+   - 同一ユーザー間に複数の辺を追加
+   - 多重辺が次数中心性計算に正しく反映されること
 
    **エラーハンドリングテスト**
    - ゼロアドレス（0x0）の追加を拒否
    - 自己接続（同一ユーザー間の接続）を拒否
    - 存在しないユーザーの次数取得でエラー
-   - 重複接続の追加を拒否
-
-   **大規模ネットワークテスト**
-   - 5ユーザー以上の複雑なネットワーク
-   - ガス効率の確認
-   - 計算精度の検証
 
    **補助機能テスト**
    - ユーザーの接続相手一覧取得
+   - 2人のユーザー間の辺数取得（`getEdgeCount`）
+   - ユーザー間接続確認（`isConnected`）
    - 総ユーザー数の取得
    - 総接続数の取得
    - 全ユーザーの次数中心性一括取得
-
-3. **テスト実行コマンド**
-   ```bash
-   npx hardhat test test/Scoring.ts --gas-reporter
-   ```
+   - 全ユーザーアドレス一覧取得
 
 ## Trust scoring
 
@@ -204,47 +152,63 @@ Trust ScoringではTrust Scoring Agentによる信用スコアの登録とスマ
 
 ### Scoring.sol
 
-[Scoring.sol](/contracts/contracts/scoring/Scoring.sol)は`Centrality.sol`と`IERC4974.sol`を継承し、信用スコアリングシステムの中核となるスマートコントラクトである
-
-- **デュアルスコアリング**: 外部評価（Trust Score Agent）と内部評価（次数中心性）の並行管理
-- **標準準拠**: ERC4974標準に完全準拠した評価システム
-- **拡張性**: 新しいオペレーターの動的追加が可能
-- **透明性**: すべての評価操作がブロックチェーン上で追跡可能
-
-- **データ構造**
-   ```solidity
-   mapping(address => bool) private operators;    // Trust Score Agentの管理
-   mapping(address => int8) private ratings;      // Trust Score Agentによる外部評価スコア (-127 ～ 127)
-   mapping(address => int8) private scores;       // スマートコントラクトによる内部計算スコア
-   ```
-- **イベント追跡**
-   - `NewOperator`: 新しいオペレーター追加時
-   - `Rating`: スコア登録時
-   - `Removal`: スコア削除時
-
+[Scoring.sol](/contracts/contracts/scoring/Scoring.sol)は`Centrality.sol`と`IERC4974.sol`を継承し、信用スコアリングシステムの中核となるスマートコントラクトである。
+外部評価（Trust Score Agent）の管理と内部評価（次数中心性）によるスコアの算出を行う。
 
 **主要機能**
 
 1. **オペレーター(Trust Scoring Agent)管理機能**
-   - `constructor(address _operator)`: 初期オペレーター設定
-   - `setOperator(address _operator)`: 新しいTrust Score Agentの追加
-   - `onlyOperator` modifier: オペレーターのみ実行可能な関数の制御
+    - `constructor(address _operator)`: 初期オペレーター設定
+    - `setOperator(address _operator)`: 新しいTrust Score Agentの追加
+    - `onlyOperator` modifier: オペレーターのみ実行可能な関数の制御
 
 2. **外部評価管理機能（ERC4974準拠）**
-   - `rate(address _rated, int8 _rating)`: Trust Score Agentによるスコア登録
-     - 評価範囲: -127 ～ 127（int8型）
-   - `removeRating(address _removed)`: 登録済みスコアの削除
-   - `ratingOf(address _rated)`: 外部評価スコアの取得
+    - `rate(address _rated, int8 _rating)`: Trust Score Agentによるスコア登録
+    - `removeRating(address _removed)`: 登録済みスコアの削除
+    - `ratingOf(address _rated)`: 外部評価スコアの取得
 
 3. **内部評価算出機能**
-   - `getScore(address _user)`: 次数中心性に基づく信用スコア取得
-     - `Centrality.calculateDegreeCentrality()`を呼び出し
-     - 取引ネットワークでの接続度合いを数値化
-     - 戻り値: int8型（-128 ～ 127の範囲）
-   - `verifyScore(address myAddress, address targetAddress)`: 取引前に自分と相手の信用スコアを比較し、取引可能かどうかを判定する関数。
-     - `getScore`で取得した自分（myAddress）と相手（targetAddress）のスコアを比較し、自分のスコアが相手以上であれば`true`を返す。
-     - いずれかのアドレスがゼロアドレスの場合はrevertする。
-     - 取引の安全性や信頼性を担保するために利用できる。
+    - `getScore(address _user)`: 次数中心性に基づく信用スコア取得
+        - `Centrality.calculateDegreeCentrality()`を呼び出し
+        - 取引ネットワークでの接続度合いを数値化
+        - 戻り値: int8型（-128 ～ 127の範囲）
+    - `verifyScore(address myAddress, address targetAddress)`: 取引前に自分と相手の信用スコアを比較し、取引可能かどうかを判定する関数。
+        - `getScore`で取得した自分（myAddress）と相手（targetAddress）のスコアを比較して自分が低ければ画面に警告を表示する
+        - 返り値: 自分のスコアが相手以上であれば`true`を返し、相手のスコアが高ければ`false`を返す。
+    - `accessControl(address myAddress, address targetAddress)`: NFT取引をする際にユーザーの信用スコアに応じてアクセス制御する関数
+        - 自身が基準となる閾値より低く、相手が高い場合取引をキャンセルする
+        - 相手の基準に合わせてスコアの閾値を設定する
+            - UserLevelが'false'の場合: `targetAddress`のスコアが上位10%のとき`myAddress`が下位10%以下でない場合取引は成立する
+            - UserLevelが'true'の場合: `targetAddress`のスコアが上位30%のとき`myAddress`が下位30%以下でない場合取引は成立する
+        - 返り値: 取引成立の場合は`true`、取引キャンセルの場合は`false`となる
+
+### Scoring.ts
+
+[Scoring.ts](/contracts/test/scoring/Scoring.ts)では[Scoring.sol](/contracts/contracts/scoring/Scoring.sol)の信用スコアリングシステムの統合テストを実行する。
+SsdlabToken.tsにおけるNFT取引発生と同時に信用スコアが更新されることを確認することで実際のユースケースでの動作を検証する。
+
+1. **テストケース構成**
+
+   **Trust Score Agentによるスコア管理テスト**
+   - **新しいオペレーター追加**: `setOperator`関数の動作確認
+   - **スコア登録・削除・取得**: ERC4974準拠の評価機能テスト
+
+   **スマートコントラクトによるスコア算出テスト**
+   - **取引履歴管理とスコア算出**: NFT取引と次数中心性スコアの連携
+   - **スコア比較機能**: `verifyScore`関数のテスト
+   - **アクセス制御機能**: `accessControl`関数のテスト
+
+2. **テストシナリオの詳細**
+
+   **取引履歴作成シナリオ**
+   1. addr1がNFTを2つ発行
+   2. addr1 → addr2 に1つのNFTを転送
+   3. addr1 → addr3 に1つのNFTを転送
+   4. この結果、addr1が最高スコア、addr2とaddr3が同等の低スコアになる
+
+   **期待される結果**
+   - verifyScore: addr1 vs addr2 → `true`, addr3 vs addr1 → `false`となることを確認
+   - accessControl: 上位ユーザーが下位ユーザーからの取引を拒否
 
 ### IERC4974.sol
 
@@ -257,11 +221,6 @@ Trust ScoringではTrust Scoring Agentによる信用スコアの登録とスマ
     - 悪意のある評価操作を防ぐため、評価の更新・削除機能を提供
     - 評価を決める方法は実装者に委ねられている
 - ERC165(コントラクトが特定のインターフェースをサポートしているか確認する仕組み)を継承している
-
-URL
-- Ethereum Improvement Proposals, ERC-4974: Ratings, https://eips.ethereum.org/EIPS/eip-4974
-- Ethereum Improvement Proposals, ERC-165: Standard Interface Detection, https://eips.ethereum.org/EIPS/eip-165
-
 
 ## Frontend
 
@@ -341,3 +300,8 @@ classDiagram
         +verifyScore(wallet: Wallet | HDNodeWallet, targetAddress: string, contractAddress: string): Promise<boolean>
     }
 ```
+
+### Reference
+
+- Ethereum Improvement Proposals, ERC-4974: Ratings, [https://eips.ethereum.org/EIPS/eip-4974](https://eips.ethereum.org/EIPS/eip-4974)
+- Ethereum Improvement Proposals, ERC-165: Standard Interface Detection, [https://eips.ethereum.org/EIPS/eip-165](https://eips.ethereum.org/EIPS/eip-165)

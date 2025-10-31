@@ -39,38 +39,47 @@ NFT交換システムでは最もシンプルなNFT交換を実現する。
 
 ```
 .gitignore
-.nvmrc # nodeのバージョンを設定
+.nvmrc    # nodeのバージョンを設定
 README.md # リポジトリの仕様を記載
-.github/ # GitHub ActionによるCI設定を記載
+.github/  # GitHub ActionによるCI設定を記載
 contracts/
   hardhat.config.ts # Hardhatの設定
-  package.json # ライブラリやプロジェクトの設定を管理
-  README.md # スマートコントラクトに関する仕様やセットアップ方法を記載
+  package.json      # ライブラリやプロジェクトの設定を管理
+  README.md         # スマートコントラクトに関する仕様やセットアップ方法を記載
   tsconfig.json
   contracts/ # スマートコントラクトのソースコード
-  ignition/ # スマートコントラクトのデプロイに関するソースコード
-  test/ # スマートコントラクトのテストコード
+  ignition/  # スマートコントラクトのデプロイに関するソースコード
+  test/      # スマートコントラクトのテストコード
+docs/
+  images/
+  ipfs.md    # IPFSによる仕様書
+  SBT.md     # SBTを用いた会員証の仕様書
+  scoring.md # 信用スコアリングシステムによるアクセス制御の仕様書
+  wallet.md  # ウォレットの仕様書
 frontend/
   eslint.config.js
   index.html
   jest.config.js
-  package.json # ライブラリやプロジェクトの設定を管理
-  README.md # フロントエンドに関する仕様やセットアップ方法を記載
+  package.json  # ライブラリやプロジェクトの設定を管理
+  README.md     # フロントエンドに関する仕様やセットアップ方法を記載
   tsconfig.json 
   vite.config.mts
-  src/ # フロントエンドのソースコード
+  src/          # フロントエンドのソースコード
     components/ # スマートコントラクトの呼び出しやUIの要素に関するコード
-    pages/ # UIに関するコード
-  test/ # テストコード
+    pages/      # UIに関するコード
+  test/         # テストコード
 ```
 
 ### Main Directories
 
 - **`contracts/`**  
-  スマートコントラクトの開発やテストを行う。`Hardhat`を使用して開発されている。詳細は[README](https://github.com/C0A21130/web3-demo-app/blob/main/contracts/README.md)を参照する。
+  スマートコントラクトの開発やテストを行う。Hardhatを使用して開発されている。詳細は[README](https://github.com/C0A21130/web3-demo-app/blob/main/contracts/README.md)を参照する。
   
 - **`frontend/`**  
   フロントエンドのシステムに関するソースコード。`Vite`を使用してシステムを構築し、`ethers.js`でスマートコントラクトの呼び出しをしている。詳細は[README](https://github.com/C0A21130/web3-demo-app/blob/main/frontend/README.md)を参照する。
+
+- **`docs/`**
+  このアプリケーションに関する仕様書を配置している。
 
 ## Setup
 
@@ -96,6 +105,18 @@ frontend/
    source ~/.bashrc
    ```
 
+   バージョンは`.nvm`ファイルを参照して変更してください
+
+   ```bash
+   nvm install vX.Y.Z
+   ```
+
+   例)
+  
+   ```bash
+   nvm install v22.14.0
+   ```
+
 1. リポジトリをクローンし、nodeのバージョンを設定する。
 
    ```bash
@@ -119,12 +140,14 @@ frontend/
    ```
 
 3. 仮想のブロックチェーンを起動する。
+
    ```bash
-   cd contracts
+   cd ../contracts
    npx hardhat node
    ```
 
 4. 別のターミナルを開いて、スマートコントラクトをデプロイする。
+
    ```bash
    cd contracts
    npx hardhat compile
@@ -133,6 +156,7 @@ frontend/
 
 5. 別のターミナルを開いて、フロントエンドのサーバーを起動する。
    ブラウザで[http://localhost:5173](http://localhost:5173)を開いてアプリケーションを表示する。
+
    ```bash
    cd frontend
    npm run dev

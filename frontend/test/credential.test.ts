@@ -4,7 +4,7 @@ import fetchCredential from '../src/components/credential/fetchCredential';
 import issueCredential from '../src/components/credential/issueCredential';
 import verifyCredential from '../src/components/credential/verifyCredential';
 
-const rpcUrl = 'http://127.0.0.1:8545';
+const rpcUrl = 'http://localhost:8545';
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 
 describe('Credential API - SBT認証情報テスト', () => {
