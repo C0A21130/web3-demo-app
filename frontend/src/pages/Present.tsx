@@ -65,8 +65,9 @@ const Present = () => {
     if (wallet == undefined) { return false; }
     
     // 会員証が発行されているか検証する
-    const tokenId = credentials.find(cred => cred.address.toLowerCase() === address.toLowerCase())?.tokenId;
-    const isValidCredential = await verifyCredential(wallet, credentialContractAddress, tokenId ? tokenId : -1, address);
+    const credential = credentials.find(cred => cred.address.toLowerCase() === address.toLowerCase());
+    const tokenId = credential ? credential.tokenId : null;
+    const isValidCredential = await verifyCredential(wallet, credentialContractAddress, tokenId == null ? -1 : tokenId, address);
     if (!isValidCredential) {
       if (!window.confirm("送信先のアドレスは会員証を持っていません。本当に取引して問題ないですか？")) { return false; }
     }

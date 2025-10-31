@@ -3,7 +3,7 @@ import localStorageMock from "./localStorage";
 import getWallet from '../src/components/getWallet';
 import { Wallet } from 'ethers';
 
-describe('getWallet', () => {
+describe('wallet', () => {
   beforeEach(() => {
     // テスト前にローカルストレージをクリア
     localStorageMock.clear();

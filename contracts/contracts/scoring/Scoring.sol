@@ -2,68 +2,15 @@
 pragma solidity ^0.8.19;
 
 import "./Centrality.sol";
-import "./IERC4974.sol";
 
 /**
  * @title Scoring
  * @dev 次数中心性を計算するスマートコントラクト
  * ユーザーアドレスを頂点として、ユーザー間の接続関係を管理し、次数中心性を算出する
  */
-contract Scoring is Centrality, IERC4974 {
-    mapping(address => bool) private operators;
-    mapping(address => int8) private ratings;
+contract Scoring is Centrality {
     mapping(address => int8) private scores;
     mapping(address => bool) private userLevels;
-
-    /// @dev See {IERC165-supportsInterface}.
-    function supportsInterface(bytes4 interfaceID) public view virtual override returns (bool) {
-        return interfaceID == type(IERC165).interfaceId || interfaceID == type(IERC4974).interfaceId;
-    }
-
-    constructor(address _operator) {
-        operators[_operator] = true;
-        emit NewOperator(_operator);
-    }
-
-    modifier onlyOperator() {
-        require(operators[msg.sender], "Caller is not the operator");
-        _;
-    }
-
-    /// @dev See {IERC4974-setOperator}.
-    /// 新しいTrust Score Agentのアドレスを設定するための関数
-    function setOperator(address _operator) public onlyOperator {
-        require(_operator != address(0), "Invalid operator address");
-        require(!operators[_operator], "Operator already set");
-        operators[_operator] = true;
-        emit NewOperator(_operator);
-    }
-
-    /// @dev See {IERC4974-rate}.
-    /// Trust Score Agentが信用スコアを登録するための関数
-    function rate(address _rated, int8 _rating) public onlyOperator {
-        // 既存のスコアを削除
-        require(_rated != address(0), "Rated address cannot be zero");
-        require(_rating >= -127 && _rating <= 127, "Rating must be between -127 and 127");
-        
-        // 新しいスコアを登録
-        ratings[_rated] = _rating;
-        emit Rating(_rated, _rating);
-    }
-
-    /// @dev See {IERC4974-removeRating}.
-    /// Trust Score Agentが登録した信用スコアを削除するための関数
-    function removeRating(address _removed) public onlyOperator {
-        require(_removed != address(0), "Removed address cannot be zero");
-        delete ratings[_removed];
-        emit Removal(_removed);
-    }
-
-    /// @dev See {IERC4974-ratingOf}.
-    /// Trust Score Agentが登録した信用スコアを取得するための関数
-    function ratingOf(address _rated) public view returns (int8) {
-        return ratings[_rated];
-    }
 
     /// ユーザーレベルを設定する関数
     /// @param _userAddress レベルを設定するユーザーアドレス
@@ -153,8 +100,8 @@ contract Scoring is Centrality, IERC4974 {
         address[] memory allUsers = getAllUsers();
         uint256 totalUsers = allUsers.length;
         
-        // ユーザーが2人未満の場合はアクセス制御なし
-        if (totalUsers < 2) {
+        // ユーザーが10人未満の場合はアクセス制御なし
+        if (totalUsers < 10) {
             return true;
         }
         

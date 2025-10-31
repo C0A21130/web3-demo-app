@@ -11,12 +11,13 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
     uint256 private _nextTokenId = 0;
     mapping(uint256 => string) private _tokenNames;
     mapping(address => uint8) private _receiveCount;
+    mapping(uint256 => string) private _tokenURIs;
 
     // イベントの定義
     event Receive(string);
     event Fallback(string);
 
-    constructor(address agent) ERC721("MyToken", "") Scoring(agent) {
+    constructor(address agent) ERC721("SsdlabToken", "SSDL") {
         _grantRole(DEFAULT_ADMIN_ROLE, agent);
     }
 
@@ -41,7 +42,7 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
         uint256 tokenId = _nextTokenId;
         _safeMint(to, tokenId);
         setTokenName(tokenId, _tokenName);
-        _setTokenURI(tokenId, _tokenURI);
+        setTokenURI(tokenId, _tokenURI);
         _nextTokenId++;
         return tokenId;
     }
@@ -74,6 +75,20 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
         return _tokenNames[tokenId];
     }
 
+    /// トークンURLを設定する関数
+    /// @param tokenId トークンのID
+    /// @param tokenUrl トークンURL
+    function setTokenURI(uint256 tokenId, string memory tokenUrl) public {
+        _tokenURIs[tokenId] = tokenUrl;
+    }
+
+    /// トークンURIを取得する関数
+    /// @param tokenId トークンのID
+    /// @return tokenUrl トークンURL
+    function getTokenURI(uint256 tokenId) public view returns (string memory) {
+        return _tokenURIs[tokenId];
+    }
+
     /// 指定したアドレスに0.1 Etherを送信する関数
     /// @param _to Etherを受け取るアドレス
     function faucet(address _to) public payable {
@@ -96,7 +111,7 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, AccessControl, Scoring)
+        override(ERC721, AccessControl)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

@@ -9,10 +9,6 @@ const ipfsApiUrl = 'http://localhost';
 const contractAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
 const walletPrivateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
-
-// 遅延関数
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 // IPFSを用いたNFTの発行
 describe('IPFS', () => {
 

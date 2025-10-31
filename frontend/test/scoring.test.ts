@@ -178,7 +178,7 @@ describe('scoring', () => {
         name: "Scoring Test Token",
         image: null,
         description: "Scoring Test Token",
-        wallet: wallet,
+        wallet: myWallet.wallet,
         contractAddress: contractAddress,
         client: null,
         ipfsApiUrl: null
