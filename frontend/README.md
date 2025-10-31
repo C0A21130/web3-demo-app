@@ -14,10 +14,11 @@
     ![Present UI](../docs/images/present.png)
 
 3. User：
-    ユーザー画面では、ウォレットの作成やETHの受け取り、ユーザー名の登録することができる。
+    ユーザー画面では、ウォレットの作成やETHの受け取りや会員証の発行をする。
     ![User UI](../docs/images/user.png)
+
 4. Score:
-    信用スコア算出のためにウォレットに接続し、NFTのTransfer logを取得する。
+    信用スコア算出のためにMetamaskのウォレットに接続し、NFTのTransfer logを取得する。
     取得後のログを[Trust Scoring System](https://github.com/C0A21130/trust-score/)に送信しグラフデータベースに取引ネットワークとして構造化し記録する。
 
 ## Frontend Architecture
@@ -26,9 +27,11 @@
 
 1. Wallet：ウォレットに関するクラス
     - getWallet
-2. Contract Call：スマートコントラクトを呼び出すためのクラス
-    - fetchToken, putToken, transferToken
-    - getUser
+2. Contract Call：スマートコントラクトを呼び出すためのファイル
+    - NFT: fetchToken, putToken, transferToken
+    - 送金: transferEth
+    - SBT: fetchCredential, issueCredential, verifyCredential
+    - 信用スコア: fetchScore, verifyScore
 
 以下にクラス図を示す。
 
@@ -39,15 +42,9 @@
 `frontend/src/components/getWallet.ts`はウォレットを作成する関数である。
 ブロックチェーンに接続し、署名を行うためのモジュールであるウォレットを[ethers.jsのWallet](https://docs.ethers.org/v6/api/wallet/)クラスを用いて実装している。
 秘密鍵はシード値から生成され、ブラウザのローカルストレージに保存される。
+より詳しく仕様について[wallet.md](./../docs/wallet.md)を参照する。
 
 ![Wallet](../docs/images/wallet.png)
-
-ウォレットは、以下の流れで作成される。
-
-1. ローカルストレージに保存されている秘密鍵を確認する。
-2. 秘密鍵が存在する場合、その秘密鍵を使用してウォレットを生成する。
-3. 秘密鍵が存在しない場合、新しいウォレットを生成し、その秘密鍵をローカルストレージに保存する。
-4. ウォレットをEthereumプロバイダーに接続して返す。
 
 ### Contract Call
 
@@ -77,9 +74,11 @@
 各種設定が `frontend/src/App.tsx` ファイルに記載されている。
 各自の環境に合わせて設定を変更する必要がある。
 
-- rpcUrls: 接続するJSON-RPCサーバーのURLを一つ以上記載する。
-- contractAddress: 呼び出しを先のスマートコントラクトのコントラクトアドレスを指定する。
-- receiveAccountPrivateKey: ETHを受け取る先のアカウントの秘密鍵を指定する。
+- rpcUrls: 接続するJSON-RPCサーバーのURLを一つ以上記載する
+- contractAddress: 呼び出し先のスマートコントラクトのコントラクトアドレスを指定する
+- credentialContractAddress: 呼び出し先のSBTのスマートコントラクトアドレスを指定する
+- receiveAccountPrivateKey: ETHを受け取る先のアカウントの秘密鍵を指定する
+- ipfsApiUrl: 接続するIPFSのノードのURLを指定する
 
 ### Start the Frontend Server
 
@@ -123,11 +122,13 @@ JestとMocha, Chaiを活用してテストコードを作成する。
     ```
 
 作成したテストコードは以下のコマンドで実行する。
+
 ```bash
 npm run test
 ```
 
 ファイル名を指定することで、実行するテストコードを指定することも可能である。
+
 ```bash
 npm run test test/<ファイル名>.test.ts
 ```
@@ -260,6 +261,7 @@ npm run preview
     ```
 
 ## Reference
+
 - vite, https://ja.vite.dev/
 - Hardhat, https://hardhat.org/
     - [Hardhat getting-started with hardhat ignition](https://hardhat.org/ignition/docs/getting-started)

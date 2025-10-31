@@ -15,12 +15,12 @@ import '@mantine/core/styles.css';
 
 export const rpcUrlIndexContext = createContext<[number, Dispatch<SetStateAction<number>>]>([0, () => { }]);
 export const walletContext = createContext<[Wallet | HDNodeWallet | undefined, Dispatch<SetStateAction<Wallet | HDNodeWallet | undefined>>]>([undefined, () => { }]);
-export const rpcUrls = ["http://localhost:8545"];
-export const scoringEndpointUrl = "http://localhost:5000";
-export const ipfsApiUrl = "http://localhost";
+export const rpcUrls = ["http://10.203.92.71:8545"];
+export const scoringEndpointUrl = "http://10.203.92.71:5000";
+export const ipfsApiUrl = "http://10.203.92.63";
 export const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 export const credentialContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-export const receiveAccountPrivateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+export const receiveAccountPrivateKey = "";
 
 function App() {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
