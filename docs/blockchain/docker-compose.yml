@@ -1,0 +1,41 @@
+services:
+  influxdb:
+    image: influxdb:2.7.11
+    container_name: influxdb-local
+    volumes:
+      - ./influxdb2/data:/var/lib/influxdb2
+      - ./influxdb2/config:/etc/influxdb2
+    ports:
+      - 8086:8086
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=password
+      - DOCKER_INFLUXDB_INIT_ORG=organization
+      - DOCKER_INFLUXDB_INIT_BUCKET=bucket
+
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana-local
+    restart: unless-stopped
+    ports:
+      - 8085:3000
+    volumes:
+      - grafana:/var/lib/grafana
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SERVER_ROOT_URL=http://localhost:8085
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+  explorer:
+    image: consensys/quorum-explorer:latest
+    container_name: explorer-local
+    volumes:
+      - ./explorer/config.json:/app/config.json
+      - ./explorer/.env.production:/app/.env.production
+    ports:
+      - 25000:25000
+
+volumes:
+  grafana:
