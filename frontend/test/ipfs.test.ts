@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { Wallet, JsonRpcProvider, Contract } from 'ethers';
-import putToken from '../src/components/putToken';
+import putToken from '../src/components/token/putToken';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
 import SsdlabAbi from "../abi/SsdlabToken.json";
 

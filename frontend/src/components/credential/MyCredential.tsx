@@ -6,14 +6,14 @@ import { fetchCredential } from './fetchCredential';
 import { issueCredential } from './issueCredential';
 import fetchScores from '../scoring/fetchScores';
 
-interface DisplayCredentialProps {
+interface MyCredentialProps {
   hidden: boolean;
   wallet: Wallet | HDNodeWallet | undefined;
   contractAddress: string;
   credentialContractAddress: string;
 }
 
-const DisplayCredential = (props: DisplayCredentialProps) => {
+const MyCredential = (props: MyCredentialProps) => {
   const { hidden, wallet, contractAddress, credentialContractAddress } = props;
   const [credential, setCredential] = useState<UserCredential>();
   const [inputUserName, setInputUserName] = useState<string>("");
@@ -100,4 +100,4 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
   );
 }
 
-export default DisplayCredential;
+export default MyCredential;

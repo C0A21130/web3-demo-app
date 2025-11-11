@@ -4,14 +4,14 @@ import { formatEther } from 'ethers';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
 import { Paper, Text, TextInput, Button, Container, Alert, Flex } from '@mantine/core';
 import { ipfsApiUrl, walletContext, contractAddress, credentialContractAddress } from '../App';
-import CreatePhoto from '../components/present/createPhoto';
-import UserList from '../components/present/userList';
-import putToken from '../components/putToken';
-import transferToken from '../components/transferToken';
+import CreatePhoto from '../components/token/CreatePhoto';
+import UserList from '../components/credential/UserList';
+import putToken from '../components/token/putToken';
+import transferToken from '../components/token/transferToken';
 import verifyCredential from '../components/credential/verifyCredential';
 import verifyScore from '../components/scoring/verifyScore';
 
-const Present = () => {
+const Gift = () => {
   const [myAddress, setMyAddress] = useState('0x000');
   const [myBalance, setMyBalance] = useState('0.0');
   const [tokenName, setTokenName] = useState('');
@@ -84,11 +84,11 @@ const Present = () => {
     return true;
   }
 
-  // 感謝を送信する(TODO: 実装予定)
-  const presentToken = async () => {
+  // 感謝を送信する関数
+  const giftToken = async () => {
     if (!await isValid()) { return; } // 検証に失敗した場合は処理を中断する
 
-    // IPFSに画像をアップロードしてトークンを送信する(TODO: 実装予定)
+    // IPFSに画像をアップロードしてトークンを送信する
     if (wallet == undefined || presentStatus != "感謝を送信する") { return; }
     setPresentStatus("感謝を送信中");
     try {
@@ -159,7 +159,7 @@ const Present = () => {
             value={address}
             onChange={(event) => setAddress(event.target.value)}
           />
-          <Button variant="filled" color="blue" fullWidth className="mt-4" onClick={() => presentToken()}>
+          <Button variant="filled" color="blue" fullWidth className="mt-4" onClick={() => giftToken()}>
             {presentStatus}
           </Button>
           <UserList wallet={wallet} credentials={credentials} setCredentials={setCredentials} setAddress={setAddress} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
@@ -180,4 +180,4 @@ const Present = () => {
   );
 }
 
-export default Present;
+export default Gift;

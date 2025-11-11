@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { Card, Text, Group, Paper, Alert } from '@mantine/core';
 import { Container } from '@mantine/core';
 import { contractAddress, rpcUrls, rpcUrlIndexContext, walletContext } from '../App';
-import fetchTokens from '../components/fetchTokens';
+import fetchTokens from '../components/token/fetchTokens';
 
 const Home = () => {
   const [wallet] = useContext(walletContext);

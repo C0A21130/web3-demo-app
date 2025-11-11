@@ -1,7 +1,7 @@
 import { Wallet, HDNodeWallet } from 'ethers';
 import { Card, Button, Text, RingProgress } from '@mantine/core';
 import { useEffect } from 'react';
-import fetchCredential from '../credential/fetchCredential';
+import fetchCredential from './fetchCredential';
 import fetchScores from '../scoring/fetchScores';
 
 interface UserListProps {
