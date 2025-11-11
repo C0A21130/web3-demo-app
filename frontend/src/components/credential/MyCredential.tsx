@@ -36,7 +36,7 @@ const MyCredential = (props: MyCredentialProps) => {
     setCredentialStatus("会員証の発行完了");
   }
 
-  // 会員証を発行するボタンがクリックされたときの処理(TODO: 実装予定)
+  // 会員証を発行するボタンがクリックされたときの処理
   const handleIssueCredential = async () => {
     setCredentialStatus("会員証を発行中");
     if (wallet == undefined) {
