@@ -1,5 +1,5 @@
 import { ethers, Wallet, HDNodeWallet, formatEther, isAddress } from "ethers";
-import SsdlabAbi from "./../../abi/SsdlabToken.json";
+import SsdlabAbi from "../../../abi/SsdlabToken.json";
 
 /**
  * This function transfers an NFT token using the provided wallet and contract address.

@@ -2,9 +2,9 @@ import { describe, it, expect } from "@jest/globals";
 import localStorageMock from "./localStorage";
 import getWallet from '../src/components/getWallet';
 import { Wallet, parseEther, JsonRpcProvider } from 'ethers';
-import putToken from '../src/components/putToken';
-import fetchTokens from '../src/components/fetchTokens';
-import transferToken from '../src/components/transferToken';
+import putToken from '../src/components/token/putToken';
+import fetchTokens from '../src/components/token/fetchTokens';
+import transferToken from '../src/components/token/transferToken';
 
 const rpcUrls = ['http://localhost:8545'];
 const contractAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';

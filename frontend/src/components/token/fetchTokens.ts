@@ -1,5 +1,5 @@
 import { Contract, Wallet, HDNodeWallet, EventLog, JsonRpcProvider, Provider } from "ethers";
-import SsdlabAbi from "../../abi/SsdlabToken.json";
+import SsdlabAbi from "../../../abi/SsdlabToken.json";
 
 /**
  * 指定されたウォレットとコントラクトアドレスからミントされたトークンを取得する関数

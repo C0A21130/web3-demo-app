@@ -1,0 +1,29 @@
+{
+  "algorithm": "qbft",
+  "nodes": [
+    {
+      "name": "Node-0",
+      "client": "goquorum",
+      "rpcUrl": "http://10.203.92.202:22000",
+      "privateTxUrl": ""
+    },
+    {
+      "name": "Node-1",
+      "client": "goquorum",
+      "rpcUrl": "http://10.203.92.64:22000",
+      "privateTxUrl": ""
+    },
+    {
+      "name": "Node-2",
+      "client": "goquorum",
+      "rpcUrl": "http://10.203.92.69:22000",
+      "privateTxUrl": ""
+    },
+    {
+      "name": "Node-3",
+      "client": "goquorum",
+      "rpcUrl": "http://10.203.92.59:22000",
+      "privateTxUrl": ""
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { Wallet, HDNodeWallet, JsonRpcProvider, parseEther } from 'ethers';
-import putToken from '../src/components/putToken';
-import transferToken from '../src/components/transferToken';
+import putToken from '../src/components/token/putToken';
+import transferToken from '../src/components/token/transferToken';
 import fetchScores from '../src/components/scoring/fetchScores';
 import verifyScore from '../src/components/scoring/verifyScore';
 

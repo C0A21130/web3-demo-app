@@ -13,7 +13,7 @@ const Navbar = (props: HeaderProps) => {
   const [active, setActive] = useState('ホーム');
   const menuItems = [
     { icon: <IconHome size={16} />, label: 'ホーム', url: "/" },
-    { icon: <IconGift size={16} />, label: 'プレゼント', url: "/present" },
+    { icon: <IconGift size={16} />, label: 'ギフト', url: "/gift" },
     { icon: <IconUser size={16} />, label: 'ユーザー', url: "/user" },
   ];
 

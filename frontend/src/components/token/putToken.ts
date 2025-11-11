@@ -1,6 +1,6 @@
 import { ethers, Wallet, HDNodeWallet, formatEther } from "ethers";
 import { IPFSHTTPClient } from "ipfs-http-client";
-import SsdlabAbi from './../../abi/SsdlabToken.json';
+import SsdlabAbi from '../../../abi/SsdlabToken.json';
 
 interface Params {
     wallet: Wallet | HDNodeWallet;
