@@ -9,10 +9,11 @@
 ## Overview
 
 - [scoring.md](/docs/scoring.md): 開発仕様書
-- [Scoring.sol](/contracts/contracts/scoring/Scoring.sol): 信用スコアリングシステムのメインコード
-- [Scoring.ts](/contracts/test/scoring/Scoring.ts): Scoring.solのテストコード
 - [Centrality.sol](/contracts/contracts/scoring/Centrality.sol): 取引ネットワークの管理と次数中心性算出をする
 - [Centrality.ts](/contracts/test/scoring/Centrality.ts): Centrality.solのテストコード
+- [Scoring.sol](/contracts/contracts/scoring/Scoring.sol): 信用スコアリングシステムのメインコード
+- [Scoring.ts](/contracts/test/scoring/Scoring.ts): Scoring.solのテストコード
+- [Rating.sol](/contracts/contracts/scoring/Rating.sol): Agentにより算出されたスコアの管理
 - [IERC4974.sol](/contracts/contracts/scoring/IERC4974.sol): ERC4974のインターフェース
 
 ## Centrality
@@ -148,39 +149,28 @@ Hardhatを使用したテストの設計方針：
 
 ## Trust scoring
 
-Trust ScoringではTrust Scoring Agentによる信用スコアの登録とスマートコントラクトによる取引履歴に基づく信用スコアの算出を行う
+Trust Scoringではスマートコントラクトによる取引履歴に基づく信用スコアの算出とTrust Scoring Agentによる信用スコアの登録を行う
 
 ### Scoring.sol
 
-[Scoring.sol](/contracts/contracts/scoring/Scoring.sol)は`Centrality.sol`と`IERC4974.sol`を継承し、信用スコアリングシステムの中核となるスマートコントラクトである。
-外部評価（Trust Score Agent）の管理と内部評価（次数中心性）によるスコアの算出を行う。
+[Scoring.sol](/contracts/contracts/scoring/Scoring.sol)は`Centrality.sol`を継承し、信用スコアリングシステムの中核となるスマートコントラクトである。
+内部評価（次数中心性）によるスコアの算出を行う。
 
-**主要機能**
+**内部評価算出機能**
 
-1. **オペレーター(Trust Scoring Agent)管理機能**
-    - `constructor(address _operator)`: 初期オペレーター設定
-    - `setOperator(address _operator)`: 新しいTrust Score Agentの追加
-    - `onlyOperator` modifier: オペレーターのみ実行可能な関数の制御
-
-2. **外部評価管理機能（ERC4974準拠）**
-    - `rate(address _rated, int8 _rating)`: Trust Score Agentによるスコア登録
-    - `removeRating(address _removed)`: 登録済みスコアの削除
-    - `ratingOf(address _rated)`: 外部評価スコアの取得
-
-3. **内部評価算出機能**
-    - `getScore(address _user)`: 次数中心性に基づく信用スコア取得
-        - `Centrality.calculateDegreeCentrality()`を呼び出し
-        - 取引ネットワークでの接続度合いを数値化
-        - 戻り値: int8型（-128 ～ 127の範囲）
-    - `verifyScore(address myAddress, address targetAddress)`: 取引前に自分と相手の信用スコアを比較し、取引可能かどうかを判定する関数。
-        - `getScore`で取得した自分（myAddress）と相手（targetAddress）のスコアを比較して自分が低ければ画面に警告を表示する
-        - 返り値: 自分のスコアが相手以上であれば`true`を返し、相手のスコアが高ければ`false`を返す。
-    - `accessControl(address myAddress, address targetAddress)`: NFT取引をする際にユーザーの信用スコアに応じてアクセス制御する関数
-        - 自身が基準となる閾値より低く、相手が高い場合取引をキャンセルする
-        - 相手の基準に合わせてスコアの閾値を設定する
-            - UserLevelが'false'の場合: `targetAddress`のスコアが上位10%のとき`myAddress`が下位10%以下でない場合取引は成立する
-            - UserLevelが'true'の場合: `targetAddress`のスコアが上位30%のとき`myAddress`が下位30%以下でない場合取引は成立する
-        - 返り値: 取引成立の場合は`true`、取引キャンセルの場合は`false`となる
+- `getScore(address _user)`: 次数中心性に基づく信用スコア取得
+    - `Centrality.calculateDegreeCentrality()`を呼び出し
+    - 取引ネットワークでの接続度合いを数値化
+    - 戻り値: int8型（-128 ～ 127の範囲）
+- `verifyScore(address myAddress, address targetAddress)`: 取引前に自分と相手の信用スコアを比較し、取引可能かどうかを判定する関数。
+    - `getScore`で取得した自分（myAddress）と相手（targetAddress）のスコアを比較して自分が低ければ画面に警告を表示する
+    - 返り値: 自分のスコアが相手以上であれば`true`を返し、相手のスコアが高ければ`false`を返す。
+- `accessControl(address myAddress, address targetAddress)`: NFT取引をする際にユーザーの信用スコアに応じてアクセス制御する関数
+    - 自身が基準となる閾値より低く、相手が高い場合取引をキャンセルする
+    - 相手の基準に合わせてスコアの閾値を設定する
+        - UserLevelが'false'の場合: `targetAddress`のスコアが上位10%のとき`myAddress`が下位10%以下でない場合取引は成立する
+        - UserLevelが'true'の場合: `targetAddress`のスコアが上位30%のとき`myAddress`が下位30%以下でない場合取引は成立する
+    - 返り値: 取引成立の場合は`true`、取引キャンセルの場合は`false`となる
 
 ### Scoring.ts
 
@@ -209,6 +199,22 @@ SsdlabToken.tsにおけるNFT取引発生と同時に信用スコアが更新さ
    **期待される結果**
    - verifyScore: addr1 vs addr2 → `true`, addr3 vs addr1 → `false`となることを確認
    - accessControl: 上位ユーザーが下位ユーザーからの取引を拒否
+
+### Rating.sol
+
+[Rating.sol](/contracts/contracts/scoring/Rating.sol)は`IERC4974.sol`を継承し、信用スコアリングシステムの中核となるスマートコントラクトである。
+
+**主要機能**
+
+1. **オペレーター (Trust Scoring Agent) 管理機能**
+    - `constructor(address _operator)`: 初期オペレーター設定
+    - `setOperator(address _operator)`: 新しいTrust Score Agentの追加
+    - `onlyOperator` modifier: オペレーターのみ実行可能な関数の制御
+
+2. **外部評価管理機能（ERC4974準拠）**
+    - `rate(address _rated, int8 _rating)`: Trust Score Agentによるスコア登録
+    - `removeRating(address _removed)`: 登録済みスコアの削除
+    - `ratingOf(address _rated)`: 外部評価スコアの取得
 
 ### IERC4974.sol
 
@@ -242,7 +248,7 @@ SsdlabToken.tsにおけるNFT取引発生と同時に信用スコアが更新さ
 classDiagram
     class fetchScores {
         <<function>>
-        +fetchScores(targetAddressList: string[], wallet: Wallet | HDNodeWallet, contractAddress: string): Promise<{ targetScores: number[]; myScore: number }>
+        +fetchScores(targetAddressList: string[], wallet: Wallet | HDNodeWallet, contractAddress: string) targetScores: number[], myScore: number
     }
 ```
 
@@ -264,7 +270,7 @@ classDiagram
 classDiagram
     class fetchTransferLogs {
         <<function>>
-        +fetchTransferLogs(contractAddress: string, signer: JsonRpcSigner): Promise<TransferLog[]>
+        +fetchTransferLogs(contractAddress: string, signer: JsonRpcSigner) TransferLog[]
     }
 ```
 
@@ -281,7 +287,7 @@ classDiagram
 classDiagram
     class postTransferLogs {
         <<function>>
-        +postTransferLogs(contractAddress: string, transferLogs: TransferLog[]): Promise<void>
+        +postTransferLogs(contractAddress: string, transferLogs: TransferLog[]) void
     }
 ```
 
@@ -297,7 +303,7 @@ classDiagram
 classDiagram
     class verifyScore {
         <<function>>
-        +verifyScore(wallet: Wallet | HDNodeWallet, targetAddress: string, contractAddress: string): Promise<boolean>
+        +verifyScore(wallet: Wallet | HDNodeWallet, targetAddress: string, contractAddress: string) boolean
     }
 ```
 
