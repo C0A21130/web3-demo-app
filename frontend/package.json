@@ -8,7 +8,11 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "NODE_OPTIONS=--experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
+    "test": "NODE_OPTIONS=--experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:failure": "NODE_OPTIONS=--experimental-vm-modules node_modules/jest/bin/jest.js --runInBand test/failureScenarios/",
+    "test:blockchain-timeout": "NODE_OPTIONS=--experimental-vm-modules node_modules/jest/bin/jest.js --runInBand test/failureScenarios/blockchainTimeout.test.ts",
+    "test:ipfs-timeout": "NODE_OPTIONS=--experimental-vm-modules node_modules/jest/bin/jest.js --runInBand test/failureScenarios/ipfsTimeout.test.ts",
+    "test:network-instability": "NODE_OPTIONS=--experimental-vm-modules node_modules/jest/bin/jest.js --runInBand test/failureScenarios/networkInstability.test.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -17,7 +21,10 @@
     "@mantine/hooks": "^8.2.4",
     "@tabler/icons-react": "^3.34.1",
     "@tailwindcss/vite": "^4.1.12",
+    "@types/express": "^5.0.5",
     "ethers": "^6.15.0",
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.5",
     "ipfs-http-client": "^60.0.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
