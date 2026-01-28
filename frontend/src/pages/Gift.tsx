@@ -9,7 +9,7 @@ import UserList from '../components/credential/UserList';
 import putToken from '../components/token/putToken';
 import transferToken from '../components/token/transferToken';
 import verifyCredential from '../components/credential/verifyCredential';
-import verifyScore from '../components/scoring/verifyScore';
+import compareScore from '../components/scoring/compareScore';
 
 const Gift = () => {
   const [myAddress, setMyAddress] = useState('0x000');
@@ -73,12 +73,9 @@ const Gift = () => {
     }
 
     // 自身と取引相手の信用スコアを確認する
-    const validScoreResult = await verifyScore(wallet, address, contractAddress);
-    if(!validScoreResult.isAuthorized) {
-      window.alert("取引相手からの承認が得られませんでした。取引を中止します。");
-      return false;
-    } else if (!validScoreResult.isVerified) {
-      if (!window.confirm("取引相手の信用スコアが不足しています。本当に取引して問題ないですか？")) { return false; }
+    const isMyScoreHigher = await compareScore(wallet, address, contractAddress);
+    if (!isMyScoreHigher) {
+      if (!window.confirm("相手はコミュニティ内の活動が十分ではありません。本当に取引して問題ないですか？")) { return false; }
     }
     
     return true;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wallet, JsonRpcSigner, BrowserProvider } from 'ethers';
+import { JsonRpcSigner, BrowserProvider } from 'ethers';
 import { Group, Text, Paper, Container, Button, Table, TextInput} from '@mantine/core';
 import fetchTransferLogs from '../components/scoring/fetchTransferLogs';
 import postTransferLogs from '../components/scoring/postTransferLogs';
@@ -12,10 +12,11 @@ declare global {
 
 const Score = () => {
   const [wallet, setWallet] = useState<JsonRpcSigner>();
-  const [address, setAddress] = useState<string>("0x0");
-  const [contractAddress, setContractAddress] = useState<string>("0xF49af2D8DcaAc24035A2b35429873E4beeB6001E");
+  const [address, setAddress] = useState<string>("Metamaskを用いて接続してください");
+  const [contractAddress, setContractAddress] = useState<string>("");
   const [transferLogs, setTransferLogs] = useState<TransferLog[]>([]);
-  const [fetchStatus, setFetchStatus] = useState<"ログを取得する" | "ログ取得中" | "ログ取得完了" | "ログ取得エラー">("ログを取得する");
+  const [fetchButtonStatus, setFetchButtonStatus] = useState<"ログを取得する" | "ログ取得中" | "ログ取得完了" | "ログ取得エラー">("ログを取得する");
+  const [logStatus, setLogStatus] = useState<string>("");
   const [postStatus, setPostStatus] = useState<"ログを送信する" | "ログを送信中" | "ログを送信完了" | "ログを送信エラー">("ログを送信する");
 
   // This function is called when the user clicks the "ウォレットを作成" button
@@ -37,16 +38,16 @@ const Score = () => {
       console.error("ウォレットが接続されていません");
       return;
     }
-    setFetchStatus("ログ取得中");
+    setFetchButtonStatus("ログ取得中");
     setTransferLogs([]);
-    const logs = await fetchTransferLogs(contractAddress, wallet);
+    const logs = await fetchTransferLogs(contractAddress, wallet, setLogStatus);
     if (logs.length === 0) {
       console.error("ログが取得できませんでした");
-      setFetchStatus("ログ取得エラー");
+      setFetchButtonStatus("ログ取得エラー");
       return;
     }
     setTransferLogs(logs);
-    setFetchStatus("ログ取得完了");
+    setFetchButtonStatus("ログ取得完了");
   }
 
   // This function is called when the user clicks the "ログを送信" button
@@ -56,7 +57,7 @@ const Score = () => {
       return;
     }
 
-    if (fetchStatus !== "ログ取得完了" || transferLogs.length === 0) {
+    if (transferLogs.length === 0) {
       console.error("ログが取得されていません");
       return;
     }
@@ -78,9 +79,7 @@ const Score = () => {
         <Text size="sm" color="dimmed">ウォレットアドレス:</Text>
         <Text size="sm" className="break-words">{address}</Text>
         <Group className="mt-3">
-          <Button variant="outline" color={address == "0x0" ? "blue" : "gray"} onClick={() => createWallet()}>{address == "0x0" ? "ウォレットを接続する" : "ウォレット接続済み"}</Button>
-          <Button variant="outline" color={Wallet == undefined ? "gray" : "blue"} onClick={() => clickFetchLogs()}>{fetchStatus}</Button>
-          <Button variant="outline" color={transferLogs.length > 1 ? "blue" : "gray"} onClick={() => clickPostLogs()}>{postStatus}</Button>
+          <Button variant="outline" color={address == "Metamaskを用いて接続してください" ? "blue" : "gray"} onClick={() => createWallet()}>{address == "Metamaskを用いて接続してください" ? "ウォレットを接続する" : "ウォレット接続済み"}</Button>
         </Group>
         <Group className="mt-3">
           <Text size="sm" color="dimmed">コントラクトアドレスを入力:</Text>
@@ -91,6 +90,11 @@ const Score = () => {
             className="w-full max-w-[300px]"
           />
         </Group>
+        <Group className="mt-3">
+          <Button variant="outline" color={wallet == undefined ? "gray" : "blue"} onClick={() => clickFetchLogs()}>{fetchButtonStatus}</Button>
+          <Button variant="outline" color={transferLogs.length > 1 ? "blue" : "gray"} onClick={() => clickPostLogs()}>{postStatus}</Button>
+        </Group>
+        <Text size="sm" color="dimmed" className="mt-3">{logStatus}</Text>
         {transferLogs.length > 0 && (
           <div className="mt-6">
             <Text size="lg" className="mb-3">Transfer Logs 【Log Count {transferLogs.length}】</Text>
@@ -106,20 +110,20 @@ const Score = () => {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {transferLogs.slice(0, 100).map((log, index) => (
+                {transferLogs.slice(0, 50).map((log, index) => (
                   <Table.Tr key={index}>
                     <Table.Td className="text-xs break-all max-w-[100px]">
-                      {log.fromAddress.substring(0, 6)}...{log.fromAddress.substring(log.fromAddress.length - 4)}
+                      {log.from_address.substring(0, 6)}...{log.from_address.substring(log.from_address.length - 4)}
                     </Table.Td>
                     <Table.Td className="text-xs break-all max-w-[100px]">
-                      {log.toAddress.substring(0, 6)}...{log.toAddress.substring(log.toAddress.length - 4)}
+                      {log.to_address.substring(0, 6)}...{log.to_address.substring(log.to_address.length - 4)}
                     </Table.Td>
-                    <Table.Td>{log.tokenId}</Table.Td>
-                    <Table.Td>{log.gasPrice?.toFixed(6) || 'N/A'}</Table.Td>
-                    <Table.Td>{log.gasUsed?.toFixed(6) || 'N/A'}</Table.Td>
+                    <Table.Td>{log.token_id}</Table.Td>
+                    <Table.Td>{log.gas_price?.toFixed(6) || 'N/A'}</Table.Td>
+                    <Table.Td>{log.gas_used?.toFixed(6) || 'N/A'}</Table.Td>
                     <Table.Td className="text-xs break-all max-w-[100px]">
-                      <a href={log.tokenURI} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                        {log.tokenURI.substring(0, 6)}...{log.tokenURI.substring(log.tokenURI.length - 4)}
+                      <a href={log.token_uri} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                        {log.token_uri.substring(0, 6)}...{log.token_uri.substring(log.token_uri.length - 4)}
                       </a>
                     </Table.Td>
                   </Table.Tr>

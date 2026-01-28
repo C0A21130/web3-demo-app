@@ -5,6 +5,7 @@ import { IconWallet } from '@tabler/icons-react';
 import { rpcUrls, scoringEndpointUrl, rpcUrlIndexContext, contractAddress, credentialContractAddress, receiveAccountPrivateKey, walletContext } from '../App';
 import MyCredential from '../components/credential/MyCredential';
 import MyTokenList from '../components/token/MyTokenList';
+import MyPolicy from '../components/scoring/MyPolicy';
 import getWallet from '../components/getWallet';
 import transferEther  from '../components/transferEther';
 
@@ -91,6 +92,7 @@ const User = () => {
         有効なブロックチェーンノードが見つかりません
       </Alert>
       <MyCredential hidden={balance == "0.0"} wallet={wallet} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
+      <MyPolicy hidden={scoringEndpointUrl === ""} wallet={wallet} contractAddress={contractAddress} />
       <MyTokenList hidden={balance == "0.0"} wallet={wallet} contractAddress={contractAddress} rpcUrl={rpcUrls[rpcUrlIndex]} />
     </Container>
   );
