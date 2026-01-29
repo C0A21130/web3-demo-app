@@ -122,7 +122,7 @@ Scoring コントラクト単体の基本機能と、SsdlabToken と連携した
 
 [TrustRating.sol](/contracts/contracts/scoring/TrustRating.sol)は`IERC4974.sol`を継承し、信用スコア管理の中核となるスマートコントラクトである。
 
-**主要機能**
+**内部評価算出機能**
 
 1. **オペレーター (Trust Scoring Agent) 管理機能**
     - `constructor(address _operator)`: 初期オペレーター設定
