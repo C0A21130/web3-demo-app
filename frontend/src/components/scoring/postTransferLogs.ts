@@ -6,22 +6,7 @@ const postTransferLogs = async (contractAddress: string, transferLogs: TransferL
     console.error("送信するログがありません");
     return;
   }
-
-  // 送信するログの形式を整形
-  let requestTransferLogs = transferLogs.map(log => {
-    return {
-      from_address: log.fromAddress,
-      to_address: log.toAddress,
-      token_id: log.tokenId.toString(), // 文字列として送信
-      block_number: log.blockNumber,
-      contract_address: contractAddress,
-      gas_price: log.gasPrice,
-      gas_used: log.gasUsed,
-      transaction_hash: log.txHash,
-      token_uri: log.tokenURI,
-    };
-  });
-  console.log("送信するログの0番目:", requestTransferLogs[0]);
+  console.log("送信するログの0番目:", transferLogs[0]);
 
   // ログを送信する
   try {
@@ -33,7 +18,7 @@ const postTransferLogs = async (contractAddress: string, transferLogs: TransferL
       },
       body: JSON.stringify({
         contract_address: contractAddress,
-        transfer_logs: requestTransferLogs,
+        transfer_logs: transferLogs,
       }),
     })
 
