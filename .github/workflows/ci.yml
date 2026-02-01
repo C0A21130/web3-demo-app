@@ -23,10 +23,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '22'  # 必要に応じてバージョンを変更
+          node-version: '24'  # 必要に応じてバージョンを変更
 
       - name: Install dependencies
         run: npm install
+
+      - name: Run frontend build
+        run: npm run build
 
   test-contract:
     runs-on: ubuntu-latest
@@ -42,7 +45,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '22'  # 必要に応じてバージョンを変更
+          node-version: '24'  # 必要に応じてバージョンを変更
 
       - name: Install dependencies
         run: npm install

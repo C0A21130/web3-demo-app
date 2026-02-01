@@ -1,6 +1,7 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 async function deployFixture() {
     const [owner, addr1, addr2] = await ethers.getSigners();
@@ -11,7 +12,7 @@ async function deployFixture() {
 
 describe("SsdlabToken Contract", function () {
     it("NFTの発行", async function () {
-        const { SsdlabToken, addr1, addr2 } = await loadFixture(deployFixture);
+        const { SsdlabToken, addr1, addr2 } = await deployFixture();
 
         // addr1がNFTを発行
         let tokenName: any = "Test Base Token";
@@ -34,7 +35,7 @@ describe("SsdlabToken Contract", function () {
     });
 
     it("NFTの発行と転送", async function () {
-        const { SsdlabToken, addr1, addr2 } = await loadFixture(deployFixture);
+        const { SsdlabToken, addr1, addr2 } = await deployFixture();
         const tokenName = "Test Transfer Token";
 
         // addr1がNFTを発行
