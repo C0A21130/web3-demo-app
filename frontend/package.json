@@ -18,7 +18,7 @@
     "@tabler/icons-react": "^3.36.1",
     "@tailwindcss/vite": "^4.1.18",
     "ethers": "^6.16.0",
-    "ipfs-http-client": "^60.0.1",
+    "kubo-rpc-client": "^6.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.0",

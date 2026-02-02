@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { Wallet, JsonRpcProvider, Contract } from 'ethers';
 import putToken from '../src/components/token/putToken';
-import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import { create, KuboRPCClient } from 'kubo-rpc-client';
 import SsdlabAbi from "../abi/SsdlabToken.json";
 
 const rpcUrls = ['http://localhost:8545'];
@@ -16,7 +16,7 @@ describe('IPFS', () => {
     // walletの取得
     const provider = new JsonRpcProvider(rpcUrls[0]);
     const wallet = new Wallet(walletPrivateKey, provider);
-    const client = create({ url: ipfsApiUrl+":5001" }) as IPFSHTTPClient;
+    const client = create({ url: ipfsApiUrl+":5001" }) as KuboRPCClient;
 
     // NFTのミント
     const imageData = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]); // PNG header bytes

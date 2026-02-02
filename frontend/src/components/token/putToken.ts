@@ -1,5 +1,5 @@
 import { ethers, Wallet, HDNodeWallet, formatEther } from "ethers";
-import { IPFSHTTPClient } from "ipfs-http-client";
+import { KuboRPCClient } from "kubo-rpc-client";
 import SsdlabAbi from '../../../abi/SsdlabToken.json';
 
 interface Params {
@@ -8,14 +8,14 @@ interface Params {
     name: string;
     description: string | null;
     image: File | null;
-    client: IPFSHTTPClient | null;
+    client: KuboRPCClient | null;
     ipfsApiUrl: string | null;
 }
 
 /**
  * Mint a basic NFT token without IPFS metadata
  */
-const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string , metadataURI: string | null, client: IPFSHTTPClient | null) => {
+const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, tokenName: string , metadataURI: string | null, client: KuboRPCClient | null) => {
     try {
         const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
         if (metadataURI != null) {
@@ -37,7 +37,7 @@ const mintToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string,
 };
 
 // エラーが発生した際にガベージコレクションを行いロールバック処理を行う関数
-const rollbackIPFS = async (client: IPFSHTTPClient): Promise<void> => {
+const rollbackIPFS = async (client: KuboRPCClient): Promise<void> => {
     try {
         // IPFSノードでガベージコレクションを実行
         await client.repo.gc();
@@ -49,7 +49,7 @@ const rollbackIPFS = async (client: IPFSHTTPClient): Promise<void> => {
 };
 
 // // CIDをpinする関数
-const pinCID = async (client: IPFSHTTPClient, cid: string): Promise<void> => {
+const pinCID = async (client: KuboRPCClient, cid: string): Promise<void> => {
     try {
         await client.pin.add(cid);
     } catch (error) {
@@ -59,7 +59,7 @@ const pinCID = async (client: IPFSHTTPClient, cid: string): Promise<void> => {
 };
 
 // // CIDをunpinする関数
-const unpinCID = async (client: IPFSHTTPClient, cid: string): Promise<void> => {
+const unpinCID = async (client: KuboRPCClient, cid: string): Promise<void> => {
     try {
         await client.pin.rm(cid);
     } catch (error) {
@@ -68,7 +68,7 @@ const unpinCID = async (client: IPFSHTTPClient, cid: string): Promise<void> => {
     }
 };
 
-const uploadTokenData = async (tokenName: string, tokenImage: File | null, description: string, client: IPFSHTTPClient, ipfsApiUrl: string): Promise<string> => {
+const uploadTokenData = async (tokenName: string, tokenImage: File | null, description: string, client: KuboRPCClient, ipfsApiUrl: string): Promise<string> => {
     let isPinned = false;
     let imageCid : string | null = null;
     let metadataCid : string | null = null;
