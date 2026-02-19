@@ -1,9 +1,10 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 // EtherFaucetのデプロイFixture
-async function deployEtherFaucetFixture() {
+async function deployFixture() {
     const [owner, ...otherSigners] = await ethers.getSigners();
     const EtherFaucet = await ethers.deployContract("EtherFaucet", []);
     return { EtherFaucet, owner, otherSigners };
@@ -13,7 +14,7 @@ describe("EtherFaucet", function () {
 
     it("コントラクトへのEther送金処理", async function () {
         // EtherFaucetコントラクトのデプロイ
-        const { EtherFaucet, owner } = await loadFixture(deployEtherFaucetFixture);
+        const { EtherFaucet, owner } = await deployFixture();
 
         // コントラクトへ0.3 Ether送金
         const transactionHash = await owner.sendTransaction({
@@ -29,7 +30,7 @@ describe("EtherFaucet", function () {
 
     it("faucet関数を利用した送金処理", async function () {
         // EtherFaucetコントラクトのデプロイ
-        const { EtherFaucet, owner, otherSigners } = await loadFixture(deployEtherFaucetFixture);
+        const { EtherFaucet, owner, otherSigners } = await deployFixture();
 
         // コントラクトへ0.4 Ether送金
         const transactionHash = await owner.sendTransaction({
@@ -55,7 +56,7 @@ describe("EtherFaucet", function () {
 
     it("receive関数でEther受信イベントが発火される", async function () {
         // EtherFaucetコントラクトのデプロイ
-        const { EtherFaucet, owner } = await loadFixture(deployEtherFaucetFixture);
+        const { EtherFaucet, owner } = await deployFixture();
 
         // Ether送信（receive関数が実行される）
         const transactionHash = await owner.sendTransaction({
@@ -69,7 +70,7 @@ describe("EtherFaucet", function () {
 
     it("アドレス0への送金は失敗する", async function () {
         // EtherFaucetコントラクトのデプロイ
-        const { EtherFaucet, owner } = await loadFixture(deployEtherFaucetFixture);
+        const { EtherFaucet, owner } = await deployFixture();
 
         // コントラクトへ0.4 Ether送金
         await owner.sendTransaction({
@@ -85,7 +86,7 @@ describe("EtherFaucet", function () {
 
     it("十分なEtherを持つアドレスへの送金は失敗する", async function () {
         // EtherFaucetコントラクトのデプロイ
-        const { EtherFaucet, owner, otherSigners } = await loadFixture(deployEtherFaucetFixture);
+        const { EtherFaucet, owner, otherSigners } = await deployFixture();
 
         // コントラクトへEther送金
         await owner.sendTransaction({

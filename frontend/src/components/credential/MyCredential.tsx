@@ -6,14 +6,14 @@ import { fetchCredential } from './fetchCredential';
 import { issueCredential } from './issueCredential';
 import fetchScores from '../scoring/fetchScores';
 
-interface DisplayCredentialProps {
+interface MyCredentialProps {
   hidden: boolean;
   wallet: Wallet | HDNodeWallet | undefined;
   contractAddress: string;
   credentialContractAddress: string;
 }
 
-const DisplayCredential = (props: DisplayCredentialProps) => {
+const MyCredential = (props: MyCredentialProps) => {
   const { hidden, wallet, contractAddress, credentialContractAddress } = props;
   const [credential, setCredential] = useState<UserCredential>();
   const [inputUserName, setInputUserName] = useState<string>("");
@@ -36,7 +36,7 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
     setCredentialStatus("会員証の発行完了");
   }
 
-  // 会員証を発行するボタンがクリックされたときの処理(TODO: 実装予定)
+  // 会員証を発行するボタンがクリックされたときの処理
   const handleIssueCredential = async () => {
     setCredentialStatus("会員証を発行中");
     if (wallet == undefined) {
@@ -88,7 +88,7 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
       <Flex direction="column" className="mt-3" hidden={credentialStatus !== "会員証の発行完了"}>
         <Text size="sm" color="dimmed">会員証 {credential?.tokenId}</Text>
         <Text size="sm" color="dimmed">ユーザー名: {credential?.userName}</Text>
-        <Text size="sm" className="break-words mb-3">信用スコア: {credential?.trustScore}</Text>
+        {credential?.trustScore !== 0.0 && <Text size="sm" color="dimmed">信用スコア: {credential?.trustScore}</Text>}
       </Flex>
       <Alert title="会員証が発行されていません" color="yellow" className="mt-4" hidden={credentialStatus === "会員証の発行完了"}>
         会員証を発行することでありがトークンを受け取りやすくなります
@@ -100,4 +100,4 @@ const DisplayCredential = (props: DisplayCredentialProps) => {
   );
 }
 
-export default DisplayCredential;
+export default MyCredential;

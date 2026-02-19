@@ -1,7 +1,7 @@
 import { Wallet, HDNodeWallet } from 'ethers';
 import { Card, Button, Text, RingProgress } from '@mantine/core';
 import { useEffect } from 'react';
-import fetchCredential from '../credential/fetchCredential';
+import fetchCredential from './fetchCredential';
 import fetchScores from '../scoring/fetchScores';
 
 interface UserListProps {
@@ -49,15 +49,17 @@ const UserList = (props: UserListProps) => {
           <Card shadow="sm" padding="md" radius="md" key={i} className="flex flex-col">
             <div className="flex justify-between items-center mb-2">
               <Text fw={700} size="md">{credential.userName}</Text>
-              <div className="flex flex-col items-center">
-                <Text size="sm" fw={700}>人気度</Text>
-                <RingProgress
-                  size={60}
-                  thickness={6}
-                  sections={[{ value: credential.trustScore / 100, color: 'blue' }]}
-                  label={<Text size="sm" fw={700}>{credential.trustScore.toFixed(3)}</Text>}
-                />
-              </div>
+              {credential.trustScore > 0 && (
+                <div className="flex flex-col items-center">
+                  <Text size="sm" fw={700}>人気度</Text>
+                  <RingProgress
+                    size={60}
+                    thickness={6}
+                    sections={[{ value: credential.trustScore / 100, color: 'blue' }]}
+                    label={<Text size="sm" fw={700}>{credential.trustScore.toFixed(3)}</Text>}
+                  />
+                </div>
+              )}
             </div>
             <Text size="sm" className="mb-2">アドレス：<br />{credential.address}</Text>
             <Button color="dark" className="w-32 self-end" onClick={() => setAddress(credential.address)}>選択する</Button>

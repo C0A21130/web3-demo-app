@@ -1,24 +1,24 @@
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatEther } from 'ethers';
-import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import { create, KuboRPCClient } from 'kubo-rpc-client';
 import { Paper, Text, TextInput, Button, Container, Alert, Flex } from '@mantine/core';
 import { ipfsApiUrl, walletContext, contractAddress, credentialContractAddress } from '../App';
-import CreatePhoto from '../components/present/createPhoto';
-import UserList from '../components/present/userList';
-import putToken from '../components/putToken';
-import transferToken from '../components/transferToken';
+import CreatePhoto from '../components/token/CreatePhoto';
+import UserList from '../components/credential/UserList';
+import putToken from '../components/token/putToken';
+import transferToken from '../components/token/transferToken';
 import verifyCredential from '../components/credential/verifyCredential';
-import verifyScore from '../components/scoring/verifyScore';
+import compareScore from '../components/scoring/compareScore';
 
-const Present = () => {
+const Gift = () => {
   const [myAddress, setMyAddress] = useState('0x000');
   const [myBalance, setMyBalance] = useState('0.0');
   const [tokenName, setTokenName] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
-  const [ipfsClient, setIpfsClient] = useState<IPFSHTTPClient | null>(null);
+  const [ipfsClient, setIpfsClient] = useState<KuboRPCClient | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [credentials, setCredentials] = useState<UserCredential[]>([]);
   const [presentStatus, setPresentStatus] = useState<"画像作成中" | "感謝を送信する" | "感謝を送信中" | "感謝を送信失敗" | "感謝を送信完了" >("画像作成中");
@@ -47,7 +47,7 @@ const Present = () => {
 
     // IPFSとの接続を確立する
     try {
-      const client = create({ url: `${ipfsApiUrl}:5001`, timeout: 3000 });
+      const client = create({ url: `${ipfsApiUrl}:5001`, timeout: 3000 }) as KuboRPCClient;
       await client.id();
       setIpfsClient(client);
       setConnecting(true);
@@ -73,22 +73,19 @@ const Present = () => {
     }
 
     // 自身と取引相手の信用スコアを確認する
-    const validScoreResult = await verifyScore(wallet, address, contractAddress);
-    if(!validScoreResult.isAuthorized) {
-      window.alert("取引相手からの承認が得られませんでした。取引を中止します。");
-      return false;
-    } else if (!validScoreResult.isVerified) {
-      if (!window.confirm("取引相手の信用スコアが不足しています。本当に取引して問題ないですか？")) { return false; }
+    const isMyScoreHigher = await compareScore(wallet, address, contractAddress);
+    if (!isMyScoreHigher) {
+      if (!window.confirm("相手はコミュニティ内の活動が十分ではありません。本当に取引して問題ないですか？")) { return false; }
     }
     
     return true;
   }
 
-  // 感謝を送信する(TODO: 実装予定)
-  const presentToken = async () => {
+  // 感謝を送信する関数
+  const giftToken = async () => {
     if (!await isValid()) { return; } // 検証に失敗した場合は処理を中断する
 
-    // IPFSに画像をアップロードしてトークンを送信する(TODO: 実装予定)
+    // IPFSに画像をアップロードしてトークンを送信する
     if (wallet == undefined || presentStatus != "感謝を送信する") { return; }
     setPresentStatus("感謝を送信中");
     try {
@@ -159,7 +156,7 @@ const Present = () => {
             value={address}
             onChange={(event) => setAddress(event.target.value)}
           />
-          <Button variant="filled" color="blue" fullWidth className="mt-4" onClick={() => presentToken()}>
+          <Button variant="filled" color="blue" fullWidth className="mt-4" onClick={() => giftToken()}>
             {presentStatus}
           </Button>
           <UserList wallet={wallet} credentials={credentials} setCredentials={setCredentials} setAddress={setAddress} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
@@ -180,4 +177,4 @@ const Present = () => {
   );
 }
 
-export default Present;
+export default Gift;

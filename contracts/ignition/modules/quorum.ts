@@ -3,11 +3,11 @@
 
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-const SsdlabTokenModule = buildModule("SsdlabTokenModule", (m) => {
-  const agentAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"; // Hardhat Account #0 address
+const quorumModule = buildModule("quorumModule", (m) => {
+  const agentAddress = "0xc5ecd88ba49ff3eb34a329656422f463cc2572e7"; // Quorum Agent Contract Address
   const ssdlabToken = m.contract("SsdlabToken", [agentAddress]);
   const credential = m.contract("MemberSbtDemo", ["DemoSBT", "DSBT", true, agentAddress]);
   return { ssdlabToken, credential };
 });
 
-export default SsdlabTokenModule;
+export default quorumModule;

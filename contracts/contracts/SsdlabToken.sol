@@ -11,9 +11,7 @@ contract SsdlabToken is ERC721, Scoring {
     mapping(uint256 => string) private _tokenNames;
     mapping(uint256 => string) private _tokenURIs;
 
-    constructor(address agent) ERC721("SsdlabToken", "SSDLAB") {
-        
-    }
+    constructor(address agent) ERC721("SsdlabToken", "SSDLAB") Scoring(agent) {}
 
     /// トークンを発行する関数
     /// @param to トークンを受け取るアドレス
@@ -52,7 +50,8 @@ contract SsdlabToken is ERC721, Scoring {
 
         // NFTの交換と取引履歴の更新
         super.transferFrom(from, to, tokenId);
-        addEdge(from, to);
+        TrustRating.edgeCount[from][to] = true;
+        TrustRating.edgeCount[to][from] = true;
     }
 
     /// 安全にトークンを転送する関数（データ付き）
@@ -98,7 +97,7 @@ contract SsdlabToken is ERC721, Scoring {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721)
+        override(ERC721, TrustRating)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

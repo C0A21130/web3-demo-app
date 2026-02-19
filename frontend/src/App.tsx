@@ -6,7 +6,7 @@ import { useDisclosure } from '@mantine/hooks';
 import Header from './components/Header';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import Present from './pages/Present';
+import Gift from './pages/Gift';
 import NotFound from './pages/NotFound';
 import Score from './pages/Score';
 import User from './pages/User';
@@ -16,7 +16,7 @@ import '@mantine/core/styles.css';
 export const rpcUrlIndexContext = createContext<[number, Dispatch<SetStateAction<number>>]>([0, () => { }]);
 export const walletContext = createContext<[Wallet | HDNodeWallet | undefined, Dispatch<SetStateAction<Wallet | HDNodeWallet | undefined>>]>([undefined, () => { }]);
 export const rpcUrls = ["http://localhost:8545"];
-export const scoringEndpointUrl = "http://localhost:5000";
+export const scoringEndpointUrl: string = "";
 export const ipfsApiUrl = "http://localhost";
 export const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 export const credentialContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
@@ -49,7 +49,7 @@ function App() {
               <AppShell.Main>
                 <Routes>
                   <Route index path="/" element={<Home />} />
-                  <Route path="/present" element={<Present />} />
+                  <Route path="/gift" element={<Gift />} />
                   <Route path="/score" element={<Score />} />
                   <Route path="/user" element={<User />} />
                   <Route path="*" element={<NotFound />} />

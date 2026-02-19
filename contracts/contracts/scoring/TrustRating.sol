@@ -6,11 +6,14 @@ import "./IERC4974.sol";
 /**
  * @title Rating
  * @dev ERC-4974に基づく信用スコア管理コントラクト
- * Trust Score Agentがユーザーの信用スコアを登録、削除、取得できる機能を提供する
+ * Trust Score Agentがユーザーの信用スコアを登録・削除・取得できる機能を提供する
  */
-contract Rating is IERC4974 {
+contract TrustRating is IERC4974 {
     mapping(address => bool) private operators;
     mapping(address => int8) private ratings;
+    mapping(address => mapping(address => bool)) public edgeCount;
+    int8 public averageRating = 0;
+    int256 ratingCount = 0;
 
     /// @dev See {IERC165-supportsInterface}.
     function supportsInterface(bytes4 interfaceID) public view virtual override returns (bool) {
@@ -39,13 +42,17 @@ contract Rating is IERC4974 {
     /// @dev See {IERC4974-rate}.
     /// Trust Score Agentが信用スコアを登録するための関数
     function rate(address _rated, int8 _rating) public onlyOperator {
-        // 既存のスコアを削除
+        // 入力の検証
         require(_rated != address(0), "Rated address cannot be zero");
         require(_rating >= -127 && _rating <= 127, "Rating must be between -127 and 127");
         
         // 新しいスコアを登録
         ratings[_rated] = _rating;
         emit Rating(_rated, _rating);
+
+        // 平均スコアの更新
+        averageRating = int8((int16(averageRating) * int16(ratingCount) + int16(_rating)) / int16(ratingCount + 1));
+        ratingCount++;
     }
 
     /// @dev See {IERC4974-removeRating}.

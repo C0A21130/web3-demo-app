@@ -11,7 +11,7 @@
   - Web3-demo-appが実行可能な状態である
   - ブロックチェーンとウォレット(公開鍵暗号やウォレットアドレスなど)について学習済み
 
-## System design
+## システム設計
 
 **システム全体の流れ**
 
@@ -19,14 +19,16 @@
 2. ウォレット作成: ローカルストレージから既存の秘密鍵を取得しウォレットを作成
 3. ノード接続: RPC URL選択と接続試行
 
-いかにウォレット作成方法とノード接続方法について説明する。
+以下にウォレット作成方法とノード接続方法について説明する。
 
-### Create wallet
+※本システムではローカルストレージを活用して秘密鍵を保存しているためプライベートブロックチェーン以外で利用するのは禁止する
+
+### ウォレットの作成
 
 ウォレットは秘密鍵から作成されている。
 秘密鍵はシード値から生成され、ブラウザのローカルストレージに保存される。
 
-![Wallet](../docs/images/wallet.png)
+![Wallet](/docs/images/wallet.png)
 
 ウォレットは、以下の流れで作成される。
 
@@ -43,7 +45,7 @@ flowchart TD
     F --> G
 ```
 
-### Connect blockchain node
+### ブロックチェーンノードとの接続
 
 プロバイダーを活用したブロックチェーンのノードへ接続方法について紹介する
 
@@ -78,7 +80,7 @@ flowchart TD
 
 ※もし接続できなければノード3, ノード0, ノード1と逐次的に再試行する
 
-## Implement
+## 実装
 
 `frontend/src/components/getWallet.ts`はウォレットを作成する関数である。
 ブロックチェーンに接続し、署名を行うためのモジュールであるウォレットを[ethers.jsのWallet](https://docs.ethers.org/v6/api/wallet/)クラスを用いて実装している。
@@ -102,7 +104,7 @@ flowchart TD
 最後のRPC URLでも失敗した場合：rpcUrlIndex: -1を返却
 そうでなければ次のRPC URLを試行
 
-## Test
+## テストコード
 
 本セクションでは、`getWallet.ts`の機能に対するテスト仕様を記述する。各テストケースは、ウォレット作成、ブロックチェーン接続、エラーハンドリングの観点から設計されている。
 
@@ -209,5 +211,5 @@ flowchart TD
 
 ## Reference
 
-1. ethers.js
-2. ethers.js wallet
+1. [ethers.js](https://docs.ethers.org/v6/)
+2. [ethers.js wallet](https://docs.ethers.org/v6/api/wallet/)

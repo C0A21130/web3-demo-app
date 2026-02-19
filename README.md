@@ -1,13 +1,6 @@
 # web3-demo-app
 
-本アプリケーションではEthereum系ブロックチェーンを活用したアプリケーションの基盤構築とデモンストレーションを目的としている。
-現在は研究室内でEthereum系ブロックチェーンを活用したアプリケーション構築が主流になっている。
-Ethereum系ブロックチェーンにおけるエコシステムでは、EVM(Ethereum Virtual Machine)によるスマートコントラクトとフロントエンドシステムを活用したWeb3サービスを構築する。
-
-## Overview
-
-### Application
-
+本アプリケーションではEthereum系ブロックチェーンを活用したアプリケーションの基盤構築とデモンストレーションを目的としている
 NFT交換システムでは最もシンプルなNFT交換を実現する。
 本サービスでは研究室内の貢献に応じてNFTを発行・転送をする。
 例として自分の研究以外の活動として「研究メンバーのために論文を探してあげる」ことなどの研究の手伝いをすることがある。
@@ -15,84 +8,84 @@ NFT交換システムでは最もシンプルなNFT交換を実現する。
 
 ![Application](/docs/images/app.png)
 
-## System Architecture
+## システムアーキテクチャ
 
-開発環境のシステム構成について紹介する。まずスマートコントラクトのソースコードを開発・テストする。ブロックチェーンの仮想環境に対して、開発したスマートコントラクトをデプロイする。デプロイしたスマートコントラクトをフロントエンドから呼び出すことで、取引が実行される。
+開発環境のシステム構成について紹介する。まずスマートコントラクトのソースコードを開発・テストする。
+ブロックチェーンの仮想環境に対して、開発したスマートコントラクトをデプロイする。デプロイしたスマートコントラクトをフロントエンドから呼び出すことで、取引が実行される。
 
-![develop environment](/docs/images/development.png)
+![develop environment](/docs/images/system-architecture.png)
 
 - Hardhat：Ethereumのスマートコントラクト開発を効率的に行うための開発環境。Solidityコードをコンパイルやスマートコントラクトコードのテストによる検証が可能である。
   - Node：スマートコントラクトを実行するための仮想ブロックチェーン環境。
   - Ignition：スマートコントラクトをデプロイメントする。
-- Vite Server：フロントエンドの開発環境。
+- Vite：フロントエンドの開発環境
 - ethers.js：Ethereumブロックチェーンとのやり取りを簡単に行えるJavaScriptライブラリ。ブロックチェーンとやり取りをして、スマートコントラクトを呼び出す。
   - Wallet：ウォレット管理やトランザクション署名機能を提供する。
 
-本番環境ついては以下のリポジトリを参照する。
-- Blockchain: [Web3 Infrastructure for Blockchain](https://github.com/c0a22098ea/web3-infrastructure/tree/main/blockchain)
+### 本番環境による運用
+
+本番環境ではブロックチェーンは、Hardhatの仮想的なブロックチェーンではなくGoQuorum等のEthereum系ブロックチェーンや画像保存用のIPFSによるファイルシステムの設定が必要である。
+
+- Blockchain: [blockchain.md](/docs/blockchain/blockchian.md)
 - IPFS: [Web3 Infrastructure for Ipfs](https://github.com/c0a22098ea/web3-infrastructure)
 
-## Directory Structure
+## ディレクトリ構成
 
 このプロジェクトは、スマートコントラクトとフロントエンドを組み合わせた Web3アプリケーションである。
-`contracts/` ディレクトリにはスマートコントラクトに関するコードが含まれ、`frontend/` ディレクトリにはフロントエンド コードが含まれている。
 
+```bash
+.
+├── README.md
+├── .nvmrc                 # node.jsのバージョンを設定
+├── contracts
+│   ├── README.md          # スマートコントラクトの仕様書
+│   ├── artifacts          # スマートコントラクトのコンパイル後に作成されバイナリやABIが保存される
+│   ├── contracts          # スマートコントラクトのソースコード
+│   ├── hardhat.config.ts  # Hardhatの設定
+│   ├── ignition           # スマートコントラクトのデプロイに関するソースコード
+│   ├── package-lock.json
+│   ├── package.json       # npmやプロジェクトの設定を管理
+│   ├── test               # スマートコントラクトのテストコード
+│   ├── tsconfig.json
+│   └── types              # スマートコントラクトのコンパイル後に作成される型を定義したファイル
+├── docs # ドキュメントを保存
+└── frontend
+    ├── README.md
+    ├── abi                # スマートコントラクトのABIファイルを保存する
+    ├── dist               # ビルド後のフロントエンドファイルを保存
+    ├── eslint.config.js
+    ├── index.html
+    ├── jest.config.js     # テストツールJestの設定ファイル
+    ├── package-lock.json
+    ├── package.json       # npmやプロジェクトの設定を管理
+    ├── src                # フロントエンドのソースコード
+    ├── test               # フロントエンドのテストコード
+    ├── tsconfig.app.json
+    ├── tsconfig.json      # TypeScriptをJavaScriptにトランスパイルするための設定ファイル 
+    ├── tsconfig.node.json
+    └── vite.config.mts    # Viteの設定ファイル
 ```
-.gitignore
-.nvmrc    # nodeのバージョンを設定
-README.md # リポジトリの仕様を記載
-.github/  # GitHub ActionによるCI設定を記載
-contracts/
-  hardhat.config.ts # Hardhatの設定
-  package.json      # ライブラリやプロジェクトの設定を管理
-  README.md         # スマートコントラクトに関する仕様やセットアップ方法を記載
-  tsconfig.json
-  contracts/ # スマートコントラクトのソースコード
-  ignition/  # スマートコントラクトのデプロイに関するソースコード
-  test/      # スマートコントラクトのテストコード
-docs/
-  images/
-  ipfs.md    # IPFSによる仕様書
-  SBT.md     # SBTを用いた会員証の仕様書
-  scoring.md # 信用スコアリングシステムによるアクセス制御の仕様書
-  wallet.md  # ウォレットの仕様書
-frontend/
-  eslint.config.js
-  index.html
-  jest.config.js
-  package.json  # ライブラリやプロジェクトの設定を管理
-  README.md     # フロントエンドに関する仕様やセットアップ方法を記載
-  tsconfig.json 
-  vite.config.mts
-  src/          # フロントエンドのソースコード
-    components/ # スマートコントラクトの呼び出しやUIの要素に関するコード
-    pages/      # UIに関するコード
-  test/         # テストコード
-```
-
-### Main Directories
 
 - **`contracts/`**  
-  スマートコントラクトの開発やテストを行う。Hardhatを使用して開発されている。詳細は[README](https://github.com/C0A21130/web3-demo-app/blob/main/contracts/README.md)を参照する。
+  スマートコントラクトの開発やテストを行う。Hardhatを使用して開発
+  - [スマートコントラクトの仕様書](/contracts/README.md)
   
 - **`frontend/`**  
-  フロントエンドのシステムに関するソースコード。`Vite`を使用してシステムを構築し、`ethers.js`でスマートコントラクトの呼び出しをしている。詳細は[README](https://github.com/C0A21130/web3-demo-app/blob/main/frontend/README.md)を参照する。
+  フロントエンドのシステムに関するソースコード。`Vite`を使用してシステムを構築し、`ethers.js`でスマートコントラクトの呼び出しをしている
+  - [フロントエンドの仕様書](/frontend/README.md)
 
-- **`docs/`**
-  このアプリケーションに関する仕様書を配置している。
+- **`docs/`**: このアプリケーションに関する仕様書を配置
+   - [NFTの仕様書](/docs/token.md)
+   - [IPFSを活用した画像アップロードの仕様書](/docs/ipfs.md) 
+   - [SBTを用いた会員証の仕様](/docs/SBT.md)
+   - [信用スコアによるアクセス制御の仕様書](/docs/scoring.md)
+   - [ウォレットの仕様書](/docs/wallet.md)
+   - [ブロックチェーン環境の仕様書](/docs/blockchain/blockchian.md)
+   - [監視環境の仕様書](/docs/monitoring/monitoring.md)
 
-## Setup
+## セットアップ
 
-### Required Tools
-
-- Node.js (推奨バージョンについては `.nvmrc` を参照する)
-- npm
-- Solidity (スマートコントラクトのバージョンについては、`./contracts/hardhat.config.ts`を参照する)
-- Hardhat (v2)
-- ethers.js (v6)
-- Vite (v6)
-
-### Installation Steps
+**1. プロジェクトの初期化**
 
 以下にアプリケーションを仮想ブロックチェーンの環境で起動する方法について説明する。
 
@@ -114,7 +107,7 @@ frontend/
    例)
   
    ```bash
-   nvm install v22.14.0
+   nvm install v24.13.0
    ```
 
 1. リポジトリをクローンし、nodeのバージョンを設定する。
@@ -151,20 +144,47 @@ frontend/
    ```bash
    cd contracts
    npx hardhat compile
-   npx hardhat ignition deploy ignition/modules/SsdlabToken.ts --network localhost
+   npx hardhat ignition deploy ignition/modules/localhost.ts --network localhost
    ```
 
-5. 別のターミナルを開いて、フロントエンドのサーバーを起動する。
-   ブラウザで[http://localhost:5173](http://localhost:5173)を開いてアプリケーションを表示する。
+5. [App.tsx](/frontend/src/App.tsx) によるパラメータの設定
+
+   各種エンドポイントやコントラクトアドレスを設定する
+   - `rpcUrls`: ブロックチェーンのRPC URL
+   - `scoringEndpointUrl`: 信用スコアリングシステムのURL
+   - `ipfsApiUrl`: IPFSのKubo RPC API(ポート番号は含まない)
+   - `contractAddress`:
+      - NFTのコントラクトアドレス
+      - デプロイ後表示されるコントラクトアドレスを設定する
+   - `credentialContractAddress`: 
+      - SBTのコントラクトアドレス
+      - デプロイ後表示されるコントラクトアドレスを設定する
+   - `receiveAccountPrivateKey`: 
+      - Hardhat node起動時に表示される秘密鍵の設定
+      - Hardhatを利用しない場合は指定せず信用スコアリングシステムの送金プログラムを利用する
+
+   例)
+
+   ```typescript:App.tsx
+   export const rpcUrls = ["http://localhost:8545"];
+   export const scoringEndpointUrl: string = "";
+   export const ipfsApiUrl = "http://localhost";
+   export const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+   export const credentialContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+   export const receiveAccountPrivateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+   ```
+
+6. 別のターミナルを開いて、フロントエンドのサーバーを起動する。
+   ブラウザで[http://localhost:5173](http://localhost:5173)を開いてアプリケーションを利用する
 
    ```bash
    cd frontend
    npm run dev
    ```
 
-6. もし秘密鍵やユーザー名を初期化する場合は、LocalStorageを消去する。
-   ブラウザの開発者ツール(F12)を開き、Applicationタブを開きClear ALLをクリックする。
-   ![Clear Secret Key](/docs/images/clear.png)
+※もし秘密鍵やユーザー名を確認・初期化する場合は、LocalStorageを消去する。
+ブラウザの開発者ツール(F12)を開き、Applicationタブを開きClear ALLをクリックする。
+![Clear Secret Key](/docs/images/clear.png)
 
 ## CI/CD
 

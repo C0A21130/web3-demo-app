@@ -1,117 +1,127 @@
 import { Contract, JsonRpcSigner, formatUnits, TransactionReceipt, Log, EventLog } from "ethers";
 import SsdlabAbi from "../../../abi/SsdlabToken.json";
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+type txReceiptLog = {
+  tokenId: bigint;
+  gasPrice: string;
+  gasUsed: string;
+  tokenURI: string;
+};
 
-const fetchTransferLogs = async (contractAddress: string, signer: JsonRpcSigner): Promise<TransferLog[]> => {
-  const contract = new Contract(contractAddress, SsdlabAbi.abi, signer);
-  let transferLog: TransferLog;
-  let txReceipt: TransactionReceipt | null = null;
-  let gasPrice: number = 0.0;
-  let gasUsed: number = 0.0;
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // アドレスを指定しない場合は全てのログを取得する
+// イベントログ取得
+const fetchEventLogs = async (contract: Contract, signer: JsonRpcSigner, setLogStatus?: (status: string) => void): Promise<(Log | EventLog)[]> => {
   let logs: (Log | EventLog)[] = [];
   const latest = await signer.provider?.getBlockNumber();
-  const network = await signer.provider?.getNetwork();
-  const rate = network?.chainId == 1n ? Math.floor(latest / 500) : Math.floor(latest / 100);
-  
+  const rate = latest > 100000 ? 100000 : 1000; // 一度に取得するブロック数の上限を設定
+
   // 一度に取得するブロック数を指定して取得する
   for (let i = 0; i < latest; i += rate) {
     const fromBlock = i;
     const toBlock = Math.min(i + rate, latest);
-    try {
-      const batchLogs = await contract.queryFilter("Transfer", fromBlock, toBlock);
-      logs = logs ? [...logs, ...batchLogs] : batchLogs;
-    } catch (error) { // もしエラーが発生した場合は、一度に取得するブロックを小さくして再試行
-      const miniSize = Math.floor((toBlock - fromBlock) / 10);
-      for (let j = fromBlock; j < toBlock; j += miniSize) {
-        const batchLogs = await contract.queryFilter("Transfer", j, j + miniSize);
-        logs = logs ? [...logs, ...batchLogs] : batchLogs;
-      }
-    }
+    setLogStatus && setLogStatus(`(作業1/3)イベントログの取得中: (${fromBlock} / ${latest})`);
+    const batchLogs = await contract.queryFilter("Transfer", fromBlock, toBlock);
+    await delay(300);
+    logs = logs ? [...logs, ...batchLogs] : batchLogs;
   }
 
   // もしログが取得できなかった場合は空の配列を返す
-  if (logs.length === 0) {
-    return [];
-  }
+  return logs.length === 0 ? [] : logs;
+}
 
-  // fromが0x0000000000000000000000000000000000000000ではないものを取得する
-  logs = logs.filter((log) => {
-    const eventlog = log as EventLog;
-    if (!eventlog.args || eventlog.args == null) {
-      return eventlog.topics[0] !== "0x0000000000000000000000000000000000000000";
-    }
-    return eventlog.args?.from !== "0x0000000000000000000000000000000000000000";
-  });
+const fetchReceiptLogs = async (contract: Contract, signer: JsonRpcSigner, logs: (Log | EventLog)[], setLogStatus?: (status: string) => void): Promise<txReceiptLog[]> => {
+  let txReceipt: TransactionReceipt | null;
+  let gasPrice: string = "";
+  let gasUsed: string = "";
+  let tokenId: bigint = 0n;
+  let tokenURI: string = "";
 
-  // ログからガス代とTokenURIを取得してTransferLog型に変換する
-  console.log("Transforming logs...");
-  const transferLogs = Promise.all(
-    logs.map(async (log) => {
-      const eventlog = log as EventLog;
-
+  // ログからガス代とTokenURIを取得する
+  const transferLogs = await Promise.all(
+    logs.map(async (log, index) => {
       // ログからトランザクションにおけるガス代を取得する
+      const eventlog = log as EventLog;
       txReceipt = await signer.provider?.getTransactionReceipt(log.transactionHash);
-      await delay(50); // 通信待機
+      await delay(300);
+      setLogStatus && setLogStatus(`(作業2/3)ガス代とTokenURIの取得中: (${index + 1} / ${logs.length})`);
       if (txReceipt == null) {
         console.error("Transaction receipt not found for:", log.transactionHash);
       } else {
-        gasPrice = Number(formatUnits(txReceipt.gasPrice, 'gwei'));
-        gasUsed = Number(formatUnits(txReceipt.gasUsed, 'gwei'));
+        gasPrice = formatUnits(txReceipt.gasPrice, 'gwei');
+        gasUsed = formatUnits(txReceipt.gasUsed, 'gwei');
       }
 
-      if (!eventlog.args || eventlog.args == null) {
-        // TokenURIを取得する
-        let tokenURI = "";
-        try {
-          const tokenId = BigInt(eventlog.topics[2]);
-          if (tokenId >= 0n) {
-            tokenURI = await contract.tokenURI(tokenId);
-          }
-        } catch (error) {
-          console.error("Error fetching tokenURI:", error);
+      // TokenURIを取得する
+      try {
+        tokenId = BigInt(
+          !eventlog.args || eventlog.args == null
+            ? eventlog.topics[2]
+            : eventlog.args?.tokenId
+        );
+        if (tokenId >= 0n) {
+          tokenURI = await contract.tokenURI(tokenId);
+          await delay(300);
         }
-
-        transferLog = {
-          fromAddress: eventlog.topics[0] || "0x0000000000000000000000000000000000000000",
-          toAddress: eventlog.topics[1] || "0x0000000000000000000000000000",
-          tokenId: Number(eventlog.topics[2]) || -1,
-          blockNumber: eventlog.blockNumber,
-          gasPrice: gasPrice || 0.0,
-          gasUsed: gasUsed || 0.0,
-          txHash: eventlog.transactionHash,
-          tokenURI: tokenURI || "",
-        };
-      } else {
-        // TokenURIを取得する
-        let tokenURI = "";
-        try {
-          const tokenId = BigInt(eventlog.args?.tokenId);
-          if (tokenId >= 0n) {
-            tokenURI = await contract.tokenURI(tokenId);
-          }
-        } catch (error) {
-          console.error("Error fetching tokenURI:", error);
-          tokenURI = "";
-        }
-
-        transferLog = {
-          fromAddress: eventlog.args?.from || "0x0000000000000000000000000000000000000000",
-          toAddress: eventlog.args?.to || "0x0000000000000000000000000000",
-          tokenId: Number(eventlog.args?.tokenId) || -1,
-          blockNumber: eventlog.blockNumber,
-          gasPrice: gasPrice || 0.0,
-          gasUsed: gasUsed || 0.0,
-          txHash: eventlog.transactionHash,
-          tokenURI: tokenURI || "",
-        };
+      } catch (error) {
+        console.error("Error fetching tokenURI:", error);
       }
-      await delay(50); // 通信待機
-      return transferLog;
+      return {
+        tokenId: tokenId,
+        gasPrice: gasPrice,
+        gasUsed: gasUsed,
+        tokenURI: tokenURI
+      };
     })
   );
+  
+  return transferLogs;
+}
+
+const fetchTransferLogs = async (contractAddress: string, signer: JsonRpcSigner, setLogStatus?: (status: string) => void): Promise<TransferLog[]> => {
+  let transferLogs: TransferLog[] = [];
+  let eventLogs: (Log | EventLog)[] = [];
+  let txReceiptLogs: txReceiptLog[] = [];
+
+  // コントラクトを初期化する
+  const contract = new Contract(contractAddress, SsdlabAbi.abi, signer);
+  // イベントログを取得する
+  eventLogs = await fetchEventLogs(contract, signer, setLogStatus);
+  await delay(1000);
+  // イベントログからレシートログを取得する
+  txReceiptLogs = await fetchReceiptLogs(contract, signer, eventLogs, setLogStatus);
+  // イベントログとレシートログを組み合わせ、条件に合うものだけTransferLog型に変換する
+  setLogStatus && setLogStatus(`(作業3/3)変換中...`);
+  transferLogs = eventLogs.reduce<TransferLog[]>((acc, log, index) => {
+    const eventlog = log as EventLog;
+    const receiptlog = txReceiptLogs[index];
+    const hasArgs = !!eventlog.args;
+    const fromAddress = hasArgs ? eventlog.args?.from : "0x" + eventlog.topics[1].slice(26);
+    const toAddress = hasArgs ? eventlog.args?.to : "0x" + eventlog.topics[2].slice(26);
+
+    // fromが0x0000000000000000000000000000000000000000ではないものだけ追加
+    const isMint = fromAddress === "0x0000000000000000000000000000000000000000";
+    if (isMint) {
+      return acc;
+    }
+
+    // TransferLog型に変換して配列に追加
+    acc.push({
+      from_address: fromAddress,
+      to_address: toAddress,
+      token_id: hasArgs ? eventlog.args?.tokenId.toString() : BigInt(eventlog.topics[3]).toString(),
+      block_number: log.blockNumber,
+      contract_address: contractAddress,
+      gas_price: receiptlog ? Number(receiptlog.gasPrice) : 0.0,
+      gas_used: receiptlog ? Number(receiptlog.gasUsed) : 0.0,
+      transaction_hash: log.transactionHash,
+      token_uri: receiptlog ? receiptlog.tokenURI : "",
+    });
+
+    return acc;
+  }, []);
+  setLogStatus && setLogStatus(`合計 ${transferLogs.length} 件のログを取得しました`);
+
   return transferLogs;
 }
 

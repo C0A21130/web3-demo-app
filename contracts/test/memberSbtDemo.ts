@@ -1,7 +1,9 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import { MemberSbtDemo } from "../typechain-types";
-import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { network } from "hardhat";
+import type { MemberSbtDemo } from "../types/ethers-contracts/index.js";
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/types";
+
+const { ethers } = await network.connect();
 
 describe("MemberSbtDemo", function () {
   let demoSbt: MemberSbtDemo;

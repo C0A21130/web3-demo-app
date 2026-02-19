@@ -55,7 +55,7 @@ const CreatePhoto = (props: displayPhotoProps) => {
   };
 
   // ドローイングのロジック
-  function handleMouseDown(e: React.MouseEvent) {
+  function handlePointerDown(e: React.PointerEvent) {
     setIsDrawing(true);
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -67,7 +67,7 @@ const CreatePhoto = (props: displayPhotoProps) => {
       setStrokes([...strokes, { tool: 'pen', color, points: [{ x, y }] }]);
     }
   }
-  function handleMouseMove(e: React.MouseEvent) {
+  function handlePointerMove(e: React.PointerEvent) {
     if (!isDrawing || tool === 'circle') return;
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -79,7 +79,7 @@ const CreatePhoto = (props: displayPhotoProps) => {
       return copy;
     });
   }
-  function handleMouseUp() {
+  function handlePointerUp() {
     setIsDrawing(false);
   }
 
@@ -154,17 +154,17 @@ const CreatePhoto = (props: displayPhotoProps) => {
             </Flex>
 
             {/* キャンバス */}
-            <div className="border bg-white" style={{ width: 360, height: 320 }}>
+            <div className="border bg-white w-full">
               <canvas
                 ref={canvasRef}
-                width={360}
-                height={320}
+                width={300}
+                height={300}
                 className="w-full h-full"
                 style={{ touchAction: 'none' }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
               />
             </div>
           </div>

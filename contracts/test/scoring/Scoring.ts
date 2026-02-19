@@ -1,105 +1,184 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { HDNodeWallet } from "ethers";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+import type { SsdlabToken } from "../../types/ethers-contracts/index.js";
+
+const { ethers } = await network.connect();
 
 async function deployFixture() {
   const [owner, addr1, addr2, addr3] = await ethers.getSigners();
-  const Scoring = await ethers.deployContract("Scoring");
-  const Rating = await ethers.deployContract("Rating", [owner.address]);
+  const Scoring = await ethers.deployContract("Scoring", [owner.address]);
   const SsdlabToken = await ethers.deployContract("SsdlabToken", [owner.address]);
-  return { Scoring, Rating, SsdlabToken, owner, addr1, addr2, addr3 };
+  return { Scoring, SsdlabToken, owner, addr1, addr2, addr3 };
+}
+
+// トークンの発行と転送を行う関数
+const mintAndTransferToken = async (SsdlabToken: SsdlabToken, from: any, to: any, tokenName: string) => {
+  const tx = await SsdlabToken.connect(from).safeMint(from.address, tokenName);
+  const receipt = await tx.wait();
+  const transferEvent = receipt?.logs.find((log: any) => log.topics[0] === SsdlabToken.interface.getEvent("Transfer").topicHash);
+  const tokenId = transferEvent ? parseInt(transferEvent.topics[3], 16) : 0;
+  await SsdlabToken.connect(from).transferFrom(from.address, to.address, tokenId);
 }
 
 describe("Scoring Contract", function () {
-  describe("Trust Score Agentによるスコア管理", function () {
-    it("新しいオペレーターを追加できること", async function () {
-      const { Rating, owner, addr1 } = await loadFixture(deployFixture);
-      await Rating.connect(owner).setOperator(addr1.address);
-    });
-
-    it("スコアを登録・削除・取得できること", async function () {
-      const { Rating, owner, addr1 } = await loadFixture(deployFixture);
-      
-      // スコアの登録
-      await Rating.connect(owner).rate(addr1.address, 85);
-      const score = await Rating.ratingOf(addr1.address);
-      expect(score).to.equal(85);
-
-      // スコアの削除
-      await Rating.connect(owner).removeRating(addr1.address);
-      const removedScore = await Rating.ratingOf(addr1.address);
-      expect(removedScore).to.equal(0);
-    });
-  });
-
-  describe("スマートコントラクトによるスコアの算出", function () {
-    it("トークン発行に紐づけて取引履歴管理とスコア算出可能なこと", async function () {
-      const { SsdlabToken, addr1, addr2 } = await loadFixture(deployFixture);
-      
-      // トークンの発行と転送
-      let tx = await SsdlabToken.connect(addr1).safeMint(addr1.address, "tokenName1");
-      let receipt = await tx.wait();
-      const transferEvent = receipt?.logs.find(log => log.topics[0] === SsdlabToken.interface.getEvent("Transfer").topicHash);
-      const tokenId = transferEvent ? parseInt(transferEvent.topics[3], 16) : 0;
-      await SsdlabToken.connect(addr1).transferFrom(addr1.address, addr2.address, tokenId);
+  describe("基本機能の確認", function () {
+    it("スコアが正しく取得できること", async function () {
+      const { Scoring, addr1 } = await deployFixture();
 
       // スコアの取得
-      const score = await SsdlabToken.getScore(addr1.address);
-      expect(score).to.equal(100);
+      const score = await Scoring.getScore(addr1.address);
+      expect(score).to.equal(0); // 初期スコアは0であることを想定
+    });
+
+    it("スコアをまとめて取得できること", async function () {
+      const { Scoring, addr1, addr2 } = await deployFixture();
+
+      // スコアのまとめて取得
+      const scores = await Scoring.getScores([addr1.address, addr2.address]);
+      expect(scores.length).to.equal(2);
+      expect(scores[0]).to.equal(0); // addr1の初期スコア
+      expect(scores[1]).to.equal(0); // addr2の初期スコア
+    });
+
+    it("ポリシーが自由に変更可能なこと", async function () {
+      const { Scoring, owner } = await deployFixture();
+
+      // ポリシーの変更
+      await Scoring.connect(owner).setPolicy(3);
+      const policy = await Scoring.getPolicy(owner.address);
+      expect(policy).to.equal(3);
     });
 
     it("自身のスコアと相手のスコアを比較できること", async function () {
-      const { SsdlabToken, addr1, addr2, addr3 } = await loadFixture(deployFixture);
-      
-      // トークンの発行と転送
-      let tx1 = await SsdlabToken.connect(addr1).safeMint(addr1.address, "tokenName1");
-      let receipt1 = await tx1.wait();
-      const transferEvent1 = receipt1?.logs.find(log => log.topics[0] === SsdlabToken.interface.getEvent("Transfer").topicHash);
-      const tokenId1 = transferEvent1 ? parseInt(transferEvent1.topics[3], 16) : 0;
-      await SsdlabToken.connect(addr1).transferFrom(addr1.address, addr2.address, tokenId1);
-
-      let tx2 = await SsdlabToken.connect(addr1).safeMint(addr1.address, "tokenName2");
-      let receipt2 = await tx2.wait();
-      const transferEvent2 = receipt2?.logs.find(log => log.topics[0] === SsdlabToken.interface.getEvent("Transfer").topicHash);
-      const tokenId2 = transferEvent2 ? parseInt(transferEvent2.topics[3], 16) : 0;
-      await SsdlabToken.connect(addr1).transferFrom(addr1.address, addr3.address, tokenId2);
+      const { Scoring, owner, addr1, addr2, addr3 } = await deployFixture();
+      // スコアを設定
+      await Scoring.connect(owner).rate(addr1.address, 80); // addr1のスコアを80に設定
+      await Scoring.connect(owner).rate(addr2.address, 60); // addr2のスコアを60に設定
+      await Scoring.connect(owner).rate(addr3.address, 40); // addr3のスコアを40に設定
 
       // 自身のスコアが高い場合にアクセスが許可されること
-      const comparison = await SsdlabToken.verifyScore(addr1.address, addr2.address);
+      const comparison = await Scoring.compareScore(addr1.address, addr2.address);
       expect(comparison).to.equal(true); // addr1のスコアがaddr2より高い場合
 
       // 自身のスコアが低い場合にアクセスが拒否されること
-      const comparison2 = await SsdlabToken.verifyScore(addr3.address, addr1.address);
+      const comparison2 = await Scoring.compareScore(addr3.address, addr1.address);
       expect(comparison2).to.equal(false); // addr3のスコアがaddr1より低い場合
     });
+  });
 
-    it("信用スコアに基づくアクセス制御が機能すること", async function () {
-      const { SsdlabToken, addr1, addr2, addr3 } = await loadFixture(deployFixture);
-      
-      // 複数アドレスの作成
-      const addrArray: HDNodeWallet[] = [];
-      for (let i = 0; i < 15; i++) {
-        const wallet = ethers.Wallet.createRandom().connect(ethers.provider);
-        addrArray.push(wallet);
-      }
-      const addressList = Array.from({ length: 50 }, (_, i) => i); // 0から49までの配列
+  describe("NFT取引と紐づくアクセス制御の確認", function () {
+    it("ポリシー0（アクセス制御なし）が機能すること", async function () {
+      const { SsdlabToken, addr1, addr2 } = await deployFixture();
+
+      // ポリシーの設定
+      await SsdlabToken.connect(addr2).setPolicy(0);
+
+      // アクセス制御の確認
+      const accessAllowed = await SsdlabToken.accessControl(addr1.address, addr2.address);
+      expect(accessAllowed).to.equal(true);
 
       // トークンの発行と転送
-      await Promise.all(addressList.map(async (addr, index) => {
-        const tx = await SsdlabToken.safeMint(addr1.address, `tokenName${index + 1}`);
-        const receipt = await tx.wait();
-        const transferEvent = receipt?.logs.find(log => log.topics[0] === SsdlabToken.interface.getEvent("Transfer").topicHash);
-        const tokenId = transferEvent ? parseInt(transferEvent.topics[3], 16) : 0;
-        const randomAddr = addrArray[Math.floor(Math.random() * addrArray.length)];
-        await SsdlabToken.connect(addr1).transferFrom(addr1.address, randomAddr.address, tokenId);
-      }));
+      await mintAndTransferToken(SsdlabToken, addr1, addr2, "Policy0");
+    });
+
+    it("ポリシー1（高信頼ユーザー）が機能すること", async function () {
+      const { SsdlabToken, owner, addr1, addr2 } = await deployFixture();
+
+      // スコアの設定
+      await SsdlabToken.connect(owner).rate(addr1.address, 80);
+      await SsdlabToken.connect(owner).rate(addr2.address, 60);
+
+      // ポリシーの設定
+      await SsdlabToken.connect(addr1).setPolicy(1);
+      await SsdlabToken.connect(addr2).setPolicy(1);
 
       // アクセス制御の確認
       const accessAllowed = await SsdlabToken.accessControl(addr1.address, addr2.address);
       expect(accessAllowed).to.equal(true); // 取引が成立する場合
-      const accessDenied = await SsdlabToken.accessControl(addr3.address, addr1.address);
+
+      const accessDenied = await SsdlabToken.accessControl(addr2.address, addr1.address);
       expect(accessDenied).to.equal(false); // 取引がキャンセルされる場合
+
+      // トークンの発行と転送
+      await mintAndTransferToken(SsdlabToken, addr1, addr2, "Policy1");
+      await expect(
+        mintAndTransferToken(SsdlabToken, addr2, addr1, "Policy1")
+      ).to.be.revertedWith("Transfer not allowed due to scoring rules"); // 取引が拒否されることを確認
+    });
+
+    it("ポリシー2（適応的ユーザー）が機能すること", async function () {
+      const { SsdlabToken, owner, addr1, addr2 } = await deployFixture();
+
+      // NFT取引の履歴を作成
+      await mintAndTransferToken(SsdlabToken, addr1, addr2, "initialToken");
+
+      // スコアの設定
+      await SsdlabToken.connect(owner).rate(addr1.address, 60);
+      await SsdlabToken.connect(owner).rate(addr2.address, 80);
+
+      // ポリシーの設定
+      await SsdlabToken.connect(addr1).setPolicy(2);
+      await SsdlabToken.connect(addr2).setPolicy(2);
+
+      // アクセス制御の確認
+      const accessAllowed = await SsdlabToken.accessControl(addr1.address, addr2.address);
+      expect(accessAllowed).to.equal(true); // 取引が成立する場合(スコアは低いが取引履歴があるため)
+
+      const accessDenied = await SsdlabToken.accessControl(addr2.address, addr1.address);
+      expect(accessDenied).to.equal(true); // 取引がキャンセルされる場合(スコアが高いため)
+
+      // トークンの発行と転送
+      await mintAndTransferToken(SsdlabToken, addr1, addr2, "Policy2");
+      await mintAndTransferToken(SsdlabToken, addr2, addr1, "Policy2");
+    });
+
+    it("ポリシー3（フリーライダー）が機能すること", async function () {
+      const { SsdlabToken, owner, addr1, addr2, addr3 } = await deployFixture();
+
+      // スコアの設定
+      await SsdlabToken.connect(owner).rate(addr1.address, 20);
+      await SsdlabToken.connect(owner).rate(addr2.address, 10);
+      await SsdlabToken.connect(owner).rate(addr3.address, 100);
+
+      // ポリシーの設定
+      await SsdlabToken.connect(addr1).setPolicy(3);
+      await SsdlabToken.connect(addr2).setPolicy(3);
+
+      // アクセス制御の確認
+      const accessAllowed = await SsdlabToken.accessControl(addr1.address, addr2.address);
+      expect(accessAllowed).to.equal(false); // 取引がキャンセルされる場合(スコアは高いが平均未満のため)
+
+      // トークンの発行と転送
+      await expect(
+        mintAndTransferToken(SsdlabToken, addr1, addr2, "Policy3")
+      ).to.be.revertedWith("Transfer not allowed due to scoring rules"); // 取引が拒否されることを確認
+    });
+
+    it("ポリシー4（孤立ユーザー）が機能すること", async function () {
+      const { SsdlabToken, owner, addr1, addr2 } = await deployFixture();
+
+      // スコアの設定
+      await SsdlabToken.connect(owner).rate(addr1.address, 60);
+      await SsdlabToken.connect(owner).rate(addr2.address, 40);
+
+      // ポリシーの設定
+      await SsdlabToken.connect(addr1).setPolicy(4);
+      await SsdlabToken.connect(addr2).setPolicy(4);
+
+      // アクセス制御の確認
+      const accessAllowed = await SsdlabToken.accessControl(addr1.address, addr2.address);
+      expect(accessAllowed).to.equal(false); // 取引が成立しない場合
+
+      const accessDenied = await SsdlabToken.accessControl(addr2.address, addr1.address);
+      expect(accessDenied).to.equal(false); // 取引がキャンセルされる場合
+
+      // トークンの発行と転送
+      await expect(
+        mintAndTransferToken(SsdlabToken, addr1, addr2, "Policy4")
+      ).to.be.revertedWith("Transfer not allowed due to scoring rules"); // 取引が拒否されることを確認
+      await expect(
+        mintAndTransferToken(SsdlabToken, addr2, addr1, "Policy4")
+      ).to.be.revertedWith("Transfer not allowed due to scoring rules"); // 取引が拒否されることを確認
     });
   });
 });

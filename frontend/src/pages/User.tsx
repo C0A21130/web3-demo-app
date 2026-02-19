@@ -2,8 +2,10 @@ import { useContext, useEffect, useState } from 'react';
 import { formatEther } from 'ethers';
 import { Flex, Group, Text, Paper, Container, Button, Alert } from '@mantine/core';
 import { IconWallet } from '@tabler/icons-react';
-import DisplayCredential from '../components/credential/displayCredential';
 import { rpcUrls, scoringEndpointUrl, rpcUrlIndexContext, contractAddress, credentialContractAddress, receiveAccountPrivateKey, walletContext } from '../App';
+import MyCredential from '../components/credential/MyCredential';
+import MyTokenList from '../components/token/MyTokenList';
+import MyPolicy from '../components/scoring/MyPolicy';
 import getWallet from '../components/getWallet';
 import transferEther  from '../components/transferEther';
 
@@ -83,13 +85,15 @@ const User = () => {
           </Button>
         </Group>
       </Paper>
-      <DisplayCredential hidden={balance === "0.0"} wallet={wallet} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
       <Alert title="注意" color="yellow" className="mt-4" hidden={address != "0x0" || rpcUrlIndex == -1}>
         ブロックチェーンに接続中です
       </Alert>
       <Alert title="エラー" color="red" className="mt-4" hidden={address != "0x0" || rpcUrlIndex != -1}>
         有効なブロックチェーンノードが見つかりません
       </Alert>
+      <MyCredential hidden={balance == "0.0"} wallet={wallet} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
+      <MyPolicy hidden={scoringEndpointUrl === ""} wallet={wallet} contractAddress={contractAddress} />
+      <MyTokenList hidden={balance == "0.0"} wallet={wallet} contractAddress={contractAddress} rpcUrl={rpcUrls[rpcUrlIndex]} />
     </Container>
   );
 }
