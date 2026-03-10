@@ -10,6 +10,8 @@ frontend
 ├── abi                          # スマートコントラクトのABIファイルを配置
 │   ├── MemberSbtDemo.json       # SBTのABIファイル
 │   └── SsdlabToken.json         # NFTのABIファイル
+├── docs                         # フロントエンド向けの学習メモ
+│   └── MintNFT-README.md        # MintNFT実装の備忘録
 ├── dist                         # ビルド後に生成される静的ファイル
 ├── eslint.config.js             # ESLintの設定ファイル
 ├── index.html                   # アプリケーションのエントリHTML
