@@ -1,0 +1,14 @@
+import { Dispatch, SetStateAction } from 'react';
+import { Wallet, HDNodeWallet } from 'ethers';
+import './index.css';
+import '@mantine/core/styles.css';
+export declare const rpcUrlIndexContext: import("react").Context<[number, Dispatch<SetStateAction<number>>]>;
+export declare const walletContext: import("react").Context<[Wallet | HDNodeWallet | undefined, Dispatch<SetStateAction<Wallet | HDNodeWallet | undefined>>]>;
+export declare const rpcUrls: string[];
+export declare const scoringEndpointUrl: string;
+export declare const ipfsApiUrl = "http://localhost";
+export declare const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+export declare const credentialContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+export declare const receiveAccountPrivateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+declare function App(): import("react/jsx-runtime").JSX.Element;
+export default App;

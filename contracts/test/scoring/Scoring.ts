@@ -1,7 +1,8 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import { SsdlabToken } from "../../typechain-types";
+import { network } from "hardhat";
+import type { SsdlabToken } from "../../types/ethers-contracts/index.js";
+
+const { ethers } = await network.connect();
 
 async function deployFixture() {
   const [owner, addr1, addr2, addr3] = await ethers.getSigners();
@@ -22,7 +23,7 @@ const mintAndTransferToken = async (SsdlabToken: SsdlabToken, from: any, to: any
 describe("Scoring Contract", function () {
   describe("基本機能の確認", function () {
     it("スコアが正しく取得できること", async function () {
-      const { Scoring, addr1 } = await loadFixture(deployFixture);
+      const { Scoring, addr1 } = await deployFixture();
 
       // スコアの取得
       const score = await Scoring.getScore(addr1.address);
@@ -30,7 +31,7 @@ describe("Scoring Contract", function () {
     });
 
     it("スコアをまとめて取得できること", async function () {
-      const { Scoring, addr1, addr2 } = await loadFixture(deployFixture);
+      const { Scoring, addr1, addr2 } = await deployFixture();
 
       // スコアのまとめて取得
       const scores = await Scoring.getScores([addr1.address, addr2.address]);
@@ -40,7 +41,7 @@ describe("Scoring Contract", function () {
     });
 
     it("ポリシーが自由に変更可能なこと", async function () {
-      const { Scoring, owner } = await loadFixture(deployFixture);
+      const { Scoring, owner } = await deployFixture();
 
       // ポリシーの変更
       await Scoring.connect(owner).setPolicy(3);
@@ -49,8 +50,7 @@ describe("Scoring Contract", function () {
     });
 
     it("自身のスコアと相手のスコアを比較できること", async function () {
-      const { Scoring, owner, addr1, addr2, addr3 } = await loadFixture(deployFixture);
-
+      const { Scoring, owner, addr1, addr2, addr3 } = await deployFixture();
       // スコアを設定
       await Scoring.connect(owner).rate(addr1.address, 80); // addr1のスコアを80に設定
       await Scoring.connect(owner).rate(addr2.address, 60); // addr2のスコアを60に設定
@@ -68,7 +68,7 @@ describe("Scoring Contract", function () {
 
   describe("NFT取引と紐づくアクセス制御の確認", function () {
     it("ポリシー0（アクセス制御なし）が機能すること", async function () {
-      const { SsdlabToken, addr1, addr2 } = await loadFixture(deployFixture);
+      const { SsdlabToken, addr1, addr2 } = await deployFixture();
 
       // ポリシーの設定
       await SsdlabToken.connect(addr2).setPolicy(0);
@@ -82,7 +82,7 @@ describe("Scoring Contract", function () {
     });
 
     it("ポリシー1（高信頼ユーザー）が機能すること", async function () {
-      const { SsdlabToken, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      const { SsdlabToken, owner, addr1, addr2 } = await deployFixture();
 
       // スコアの設定
       await SsdlabToken.connect(owner).rate(addr1.address, 80);
@@ -107,7 +107,7 @@ describe("Scoring Contract", function () {
     });
 
     it("ポリシー2（適応的ユーザー）が機能すること", async function () {
-      const { SsdlabToken, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      const { SsdlabToken, owner, addr1, addr2 } = await deployFixture();
 
       // NFT取引の履歴を作成
       await mintAndTransferToken(SsdlabToken, addr1, addr2, "initialToken");
@@ -133,7 +133,7 @@ describe("Scoring Contract", function () {
     });
 
     it("ポリシー3（フリーライダー）が機能すること", async function () {
-      const { SsdlabToken, owner, addr1, addr2, addr3 } = await loadFixture(deployFixture);
+      const { SsdlabToken, owner, addr1, addr2, addr3 } = await deployFixture();
 
       // スコアの設定
       await SsdlabToken.connect(owner).rate(addr1.address, 20);
@@ -155,7 +155,7 @@ describe("Scoring Contract", function () {
     });
 
     it("ポリシー4（孤立ユーザー）が機能すること", async function () {
-      const { SsdlabToken, owner, addr1, addr2 } = await loadFixture(deployFixture);
+      const { SsdlabToken, owner, addr1, addr2 } = await deployFixture();
 
       // スコアの設定
       await SsdlabToken.connect(owner).rate(addr1.address, 60);

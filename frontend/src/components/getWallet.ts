@@ -38,7 +38,7 @@ const getWallet = async (rpcUrls: string[], localStorage: Storage): Promise<{wal
       // タイムアウトを設定して、接続が遅い場合に備える
       const networkPromise = provider.getNetwork();
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Connection timeout')), 2000)
+        setTimeout(() => reject(new Error('Connection timeout')), 5000)
       );
       await Promise.race([networkPromise, timeoutPromise]);
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Text, UnstyledButton, ThemeIcon } from '@mantine/core';
-import { IconHome, IconGift, IconUser } from '@tabler/icons-react';
+import { IconHome, IconGift, IconUser, IconPhoto } from '@tabler/icons-react';
 
 interface HeaderProps {
   toggleMobile: () => void;
@@ -14,6 +14,7 @@ const Navbar = (props: HeaderProps) => {
   const menuItems = [
     { icon: <IconHome size={16} />, label: 'ホーム', url: "/" },
     { icon: <IconGift size={16} />, label: 'ギフト', url: "/gift" },
+    { icon: <IconPhoto size={16} />, label: 'NFT管理', url: "/nft" },
     { icon: <IconUser size={16} />, label: 'ユーザー', url: "/user" },
   ];
 

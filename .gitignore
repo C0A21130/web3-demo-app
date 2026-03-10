@@ -3,6 +3,7 @@ artifacts/
 cache/
 deployments/
 typechain-types/
+types/
 
 # Logs
 logs

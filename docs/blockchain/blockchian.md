@@ -1,94 +1,37 @@
 # Blockchain
 
-## Overview
-
 ブロックチェーンの環境構築の方法について説明する。
 本システムでは、プライベートのEthereum系ブロックチェーンの環境を構築する。
 
 - ブロックチェーン環境仕様書: [blockchain.md](./blockchian.md)
-- 監視環境仕様書: [monitor.md](./monitor.md)
-
-## Blockchian system architecture
-
-Ethereum系ブロックチェーンでは、EVM(Ethereum Virtual Machine)によってスマートコントラクトが実行される環境を構築する。
-
-- Geth(go-ethereum) Clinetは、ブロックチェーンを構成するシステムとしてトランザクションデータの保存や他ノードとの通信などを行う。
-- Validatorはトランザクションデータの検証を担う。
+- 監視環境仕様書: [monitoring.md](/docs/monitoring/monitoring.md)
 
 ![System Architecure](./images/architecture.png)
 
-## Blockchian nodes
-
+Ethereum系ブロックチェーンでは、EVM(Ethereum Virtual Machine)によってスマートコントラクトが実行される環境を構築する。
+環境構築にはGoQuorumを活用する。
 本ブロックチェーン環境では、4つのブロックチェーンノードと1つの監視用ノードでシステムが構成される。
 これらのブロックチェーンノードの数は、必要に応じて変更することが可能である。
-以下に4台で構成されているノードの構成を示す。
 
-![Node Structure](./images/node.png)
-
-Node-0(spade)
-- ブロックチェーンノード
-- IPアドレス：10.203.92.202
-- OS：Ubuntu22.04
-- ポート
-    - 22000(RPC-URL HTTP)
-    - 32000(RPC-URL WS)
-    - 30300(P2P)
-    - 22(SSH)
-- 外付けSSDにOSをインストール
-
-Node-1(club)
-- ブロックチェーンノード
-- IPアドレス：10.203.92.64
-- OS：Ubuntu22.04
-- ポート
-    - 22000(RPC-URL HTTP)
-    - 32000(RPC-URL WS)
-    - 30300(P2P)
-    - 22(SSH)
-- 外付けHDDにOSをインストール
-
-Node-2(diamond)
-- ブロックチェーンノード
-- IPアドレス：10.203.92.69
-- OS：Ubuntu22.04
-- ポート
-    - 22000(RPC-URL HTTP)
-    - 32000(RPC-URL WS)
-    - 30300(P2P)
-    - 22(SSH)
-- 外付けSSDにOSをインストール
-
-Node-3(heart)
-- ブロックチェーンノード
-- IPアドレス：10.203.92.67
-- OS：Ubuntu22.04
-- ポート
-    - 22000(RPC-URL HTTP)
-    - 32000(RPC-URL WS)
-    - 30300(P2P)
-    - 22(SSH)
-- 外付けSSDにOSをインストール
+- GoQuorumはEthereum を基盤として開発された企業向けのパーミッション型ブロックチェーンである．
+    - コンセンサスアルゴリズムにはQBFTを活用する
+    - Geth Client をインストールし，スマートコントラクトのデプロイおよびトランザクションの送信を行う
+    - Validatorノードとして機能するノードを設定し，ブロックの生成および取引の検証を担当させている
+- Geth(go-ethereum) Clinetは、ブロックチェーンを構成するシステムとしてトランザクションデータの保存や他ノードとの通信などを行う
 
 ## Set Up
 
 ブロックチェーン環境をセットアップするために必要なツールとインストール方法について説明する。
-
-### Required Tools
-
 以下が必要なツールである。GoとGoQuorum、nvmのインストールの方法は後ほど説明する。
 
-ブロックチェーンノード
-- Go(v1.24.0)
-- GoQuorum(v24.4.1)
-- crontab
+| ツール | バージョン | 利用用途 |
+|------------|------------|----------|
+| Go言語 | 1.24.0 | ブロックチェーン動作用のプログラム言語 |
+| GoQuorum | 24.4.1 | ブロックチェーンクライアント |
+| nvm | 0.40.4 | 任意のバージョンのnode.jsをインストール |
+| node.js | 22.14.0 | ブロックチェーン関連の設定ファイルをセットアップ |
 
-ローカル端末
-- curl
-- vim
-- nvm
-- node
-
-### Install Go
+### Go言語のインストール
 
 詳しいインストール方法は[Download and install - The Go Programming Langage](https://go.dev/doc/install)を参照する。
 
@@ -120,7 +63,7 @@ Goの動作確認をする。
 go version 
 ```
 
-### Install GoQuorum
+### GoQuorumのインストール
 
 詳しいインストール方法は、[Install binaries | ConsenSys GoQuorum](https://docs.goquorum.consensys.io/deploy/install/binaries)を参照する。
 
@@ -150,8 +93,9 @@ gethの動作確認をする。
 geth version
 ```
 
-### Install nvm
+### nvm・node.jsのインストール
 
+各種、初期設定ファイル(ノード一覧や秘密鍵等)のセットアップに用いる**nvm**をインストールする。
 詳しいインストール方法は、[https://github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm)を参照する。
 
 バイナリファイルをダウンロードする。
@@ -174,32 +118,35 @@ nvm install v22.14.0
 nvm use v22.14.0
 ```
 
-## Config
+## 設定
 
 ブロックチェーン環境の設定方法について説明する。
 まずローカルの環境で設定ファイル(秘密鍵・接続ノードなど)を作成し、各ノード用にコピーして配置することで設定を行う。
 
 **1. 設定ファイルの作成**
 
-※以下のコマンドはローカル端末で行う
+※以下のコマンドは**ローカル端末**で行う
 
 [quorum-genesis-tool](https://github.com/Consensys/quorum-genesis-tool)を活用してブロックチェーンノード設定の初期化を行う。
 もしノード数を変更したい場合はパラメータの`validators`の値を変更する。
 ```bash
 npx quorum-genesis-tool --consensus qbft --chainID 1337 --blockperiod 5 --requestTimeout 10 --epochLength 30000 --difficulty 1 --gasLimit '0xFFFFFF' --coinbase '0x0000000000000000000000000000000000000000' --validators 4 --members 0 --bootnodes 0 --outputPath 'artifacts'
 ```
-- --consensus qbft: コンセンサスアルゴリズムを指定します。この場合は「QBFT (Quorum Byzantine Fault Tolerance)」を利用します。
-- --chainID 1337: ブロックチェーンネットワークのチェーンIDを指定する
-- --blockperiod 5: 新しいブロックが生成される間隔（秒単位）を設定する
-- --requestTimeout 10: コンセンサスアルゴリズムがリクエストに対してタイムアウトする時間（秒単位）を設定する
-- --epochLength 30000: コンセンサスプロセスにおいてエポックの長さ（ブロック数単位）を指定する
-- --difficulty 1: ジェネシスブロックの初期難易度を指定する
-- --gasLimit '0xFFFFFF': ブロックごとの最大ガス使用量を指定する
-- --coinbase '0x0000000000000000000000000000000000000000': コインベース（報酬が支払われるアカウントアドレス）を指定する
-- --validators 4: ネットワーク内のバリデーターの数を指定する
-- --members 0: ネットワーク内の一般メンバーの数を指定する
-- --bootnodes 0: ブートノード（ネットワークに最初に接続するノード）の数を指定する。
-- --outputPath 'artifacts': ジェネシスブロックファイルなどの生成物を保存するディレクトリパスを指定する
+
+| オプション | 値 | 説明 |
+|:---|:---|:---|
+| --consensus | qbft | コンセンサスアルゴリズムを指定します。この場合は「QBFT (Quorum Byzantine Fault Tolerance)」を利用します。|
+| --chainID | 1337 | ブロックチェーンネットワークのチェーンIDを指定する |
+| --blockperiod | 5 | 新しいブロックが生成される間隔（秒単位）を設定する |
+| --requestTimeout | 10 | コンセンサスアルゴリズムがリクエストに対してタイムアウトする時間（秒単位）を設定する |
+| --epochLength | 30000 | コンセンサスプロセスにおいてエポックの長さ（ブロック数単位）を指定する |
+| --difficulty | 1 | ジェネシスブロックの初期難易度を指定する |
+| --gasLimit | '0xFFFFFF' | ブロックごとの最大ガス使用量を指定する |
+| --coinbase | '0x0000000000000000000000000000000000000000' | コインベース（報酬が支払われるアカウントアドレス）を指定する |
+| --validators | 4 | ネットワーク内のバリデーターの数を指定する |
+| --members | 0 | ネットワーク内の一般メンバーの数を指定する |
+| --bootnodes | 0 | ブートノード（ネットワークに最初に接続するノード）の数を指定する。|
+| --outputPath | 'artifacts' | ジェネシスブロックファイルなどの生成物を保存するディレクトリパスを指定する |
 
 ファイルをコピー変更する
 ```bash
@@ -219,15 +166,6 @@ vim static-nodes.json
 "enode://4afe8d839a15d862f9e91875d65954f218bd90235687f3c0c41874b84f3633af0f86af3e5b92011c8c853a7fa25300dbc00f9b679df9416c389d3b12b0a96590@<HOST>:30300?discport=0&raftport=53000",
 "enode://dd95a4d54125cd553b9b52b19f434bbd47b7b78f3fcb7a295ad2eff0f54ce755977378f1fa94cf233a25144c597e2a8010464a404a1e9073191ce51544a68565@<HOST>:30300?discport=0&raftport=53000",
 "enode://a1888a8fe4710ea24e6881a944e46f210ac0f04e3e8908898aac547658c950aafed4d58134ccd40f930f758fa93b8f90188ce844e33dd2596acd524f11e053ec@<HOST>:30300?discport=0&raftport=53000"
-]
-```
-4台構成の例)
-```bash
-[
-"enode://7aad76ec85e2627b769eb4c8ff2ce10c379223cefa9ee2fa50b91d6e3f27e96f1862b96adc91787bf1760bb74e9db6fff3ce7841d4ed04865f265f97c0a7227f@10.203.92.202:30300?discport=0&raftport=53000",
-"enode://4afe8d839a15d862f9e91875d65954f218bd90235687f3c0c41874b84f3633af0f86af3e5b92011c8c853a7fa25300dbc00f9b679df9416c389d3b12b0a96590@10.203.92.64:30300?discport=0&raftport=53000",
-"enode://dd95a4d54125cd553b9b52b19f434bbd47b7b78f3fcb7a295ad2eff0f54ce755977378f1fa94cf233a25144c597e2a8010464a404a1e9073191ce51544a68565@10.203.92.69:30300?discport=0&raftport=53000",
-"enode://a1888a8fe4710ea24e6881a944e46f210ac0f04e3e8908898aac547658c950aafed4d58134ccd40f930f758fa93b8f90188ce844e33dd2596acd524f11e053ec@10.203.92.67:30300?discport=0&raftport=53000"
 ]
 ```
 
@@ -284,7 +222,7 @@ cd ~/QBFT-Network/Node-<NUM>
 geth --datadir data init data/genesis.json
 ```
 
-## Start up
+## ブロックチェーンの起動
 
 [run.sh](./run.sh)を用いて起動させる。
 利用する場合はノード番号の`node`変数を書き換えてから利用する。
@@ -319,17 +257,21 @@ nohup geth --datadir data --networkid 1337 --nodiscover --verbosity 5 --syncmode
 ```
 
 監視ノードを利用した場合のコマンド例
-- --metrics: Gethのメトリクス収集を有効化
-- --metrics.influxdb: InfluxDBにメトリクスを送信する機能を有効化
-- --metrics.influxdb.endpoin: 監視ノードのエンドポイントを指定
-- --metrics.influxdb.username: InfluxDBにアクセスするためのユーザー名を指定
-- --metrics.influxdb.password: InfluxDBにアクセスするためのパスワードを指定
-- --metrics.influxdb.tags: メトリクスデータを分類・フィルタリングするためのタグを追加
+
+| オプション | 説明 |
+|:---|:---|
+| --metrics | Gethのメトリクス収集を有効化 |
+| --metrics.influxdb | InfluxDBにメトリクスを送信する機能を有効化 |
+| --metrics.influxdb.endpoint | 監視ノードのエンドポイントを指定 |
+| --metrics.influxdb.username | InfluxDBにアクセスするためのユーザー名を指定 |
+| --metrics.influxdb.password | InfluxDBにアクセスするためのパスワードを指定 |
+| --metrics.influxdb.tags | メトリクスデータを分類・フィルタリングするためのタグを追加 |
+
 ```bash
 nohup geth --datadir data --networkid 1337 --nodiscover --verbosity 5 --syncmode full --istanbul.blockperiod 5 --mine --miner.threads 1 --miner.gasprice 0 --emitcheckpoints --http --http.addr 0.0.0.0 --http.port 22000 --http.corsdomain "*" --http.vhosts "*" --ws --ws.addr 0.0.0.0 --ws.port 32000 --ws.origins "*" --http.api admin,eth,debug,miner,net,txpool,personal,web3,istanbul --ws.api admin,eth,debug,miner,net,txpool,personal,web3,istanbul --unlock ${ADDRESS} --allow-insecure-unlock --password ./data/keystore/accountPassword --port 30300 --metrics --metrics.influxdb --metrics.influxdb.endpoint "http://10.203.92.92:8086" --metrics.influxdb.username "geth" --metrics.influxdb.password "password" --metrics.influxdb.tags "host=node-0" > geth.log &
 ```
 
-## tips
+## Tips
 
 **定期起動・停止**
 
