@@ -14,6 +14,8 @@ import {ERC5192} from "./ERC5192.sol";
  * - SBT所有権の検証機能を提供
  */
 contract MemberSbtDemo is ERC5192, AccessControl {
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
     // 次に発行するトークンID
     uint256 private _nextTokenId;
     
@@ -40,6 +42,7 @@ contract MemberSbtDemo is ERC5192, AccessControl {
         address ownerAdmin
     ) ERC5192(_name, _symbol, _isLocked) {
         _grantRole(DEFAULT_ADMIN_ROLE, ownerAdmin);
+        _grantRole(MINTER_ROLE, ownerAdmin);
     }
 
     /**
@@ -53,6 +56,21 @@ contract MemberSbtDemo is ERC5192, AccessControl {
         string memory userName
     ) external returns (uint256) {
         require(to == msg.sender, "MemberSbtDemo: You can only mint an SBT for yourself.");
+        return _mintCredential(to, userName);
+    }
+
+    /**
+     * @dev スタッフ（MINTER_ROLE）による代理発行
+     */
+    function issueByStaff(address to, string memory userName)
+        external
+        onlyRole(MINTER_ROLE)
+        returns (uint256)
+    {
+        return _mintCredential(to, userName);
+    }
+
+    function _mintCredential(address to, string memory userName) internal returns (uint256) {
         require(!_hasCredential[to], "MemberSbtDemo: SBT already issued for this address.");
 
         uint256 tokenId = _nextTokenId;

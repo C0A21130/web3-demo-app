@@ -78,5 +78,20 @@ describe("MemberSbtDemo", function () {
       expect(await demoSbt.hasCredential(user1.address)).to.be.true;
       expect(await demoSbt.hasCredential(user2.address)).to.be.false;
     });
+
+    it("✅ スタッフ権限で代理発行できる", async function () {
+      await expect(demoSbt.connect(owner).issueByStaff(user1.address, "Staff Issued"))
+        .to.emit(demoSbt, "SBTMinted")
+        .withArgs(user1.address, 0, "Staff Issued");
+
+      expect(await demoSbt.ownerOf(0)).to.equal(user1.address);
+      expect(await demoSbt.hasCredential(user1.address)).to.be.true;
+    });
+
+    it("❌ スタッフ権限がないユーザーは代理発行できない", async function () {
+      await expect(
+        demoSbt.connect(user1).issueByStaff(user2.address, "Unauthorized")
+      ).to.be.revertedWithCustomError(demoSbt, "AccessControlUnauthorizedAccount");
+    });
   });
 });
