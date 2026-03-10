@@ -61,6 +61,9 @@ const User = () => {
 
   return (
     <Container size="sm" className="mt-10">
+      <Alert title="任意ログイン" color="blue" className="mb-4">
+        この画面は希望者向けです。通常のチャット体験はログイン不要で利用できます。
+      </Alert>
       <Paper shadow="sm" withBorder className="p-4">
         <div className='flex items-center'>
           <IconWallet size={24} />

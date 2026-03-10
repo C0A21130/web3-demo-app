@@ -15,7 +15,7 @@ const Navbar = (props: HeaderProps) => {
     { icon: <IconHome size={16} />, label: 'ホーム', url: "/" },
     { icon: <IconGift size={16} />, label: 'ギフト', url: "/gift" },
     { icon: <IconPhoto size={16} />, label: 'NFT管理', url: "/nft" },
-    { icon: <IconUser size={16} />, label: 'ユーザー', url: "/user" },
+    { icon: <IconUser size={16} />, label: '任意ログイン', url: "/user" },
   ];
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
-import { Text, Container, Group, Stack, Paper, Alert, Badge } from '@mantine/core';
+import { Text, Container, Group, Stack, Paper, Alert, Badge, Button } from '@mantine/core';
 import { IconGiftCard } from '@tabler/icons-react';
+import { Link } from 'react-router-dom';
 import { contractAddress, rpcUrls, rpcUrlIndexContext, walletContext } from '../App';
 import fetchTokens from '../components/token/fetchTokens';
 
@@ -46,6 +47,18 @@ const Home = () => {
 
   return (
     <Container size="sm" className="mt-10">
+      <Paper shadow="sm" withBorder className='p-4 mb-4'>
+        <Text size="lg" fw={700}>チャット体験について</Text>
+        <Text size="sm" mt="xs">
+          チャットはログイン不要で利用できます。希望する方のみ、体験完了後にSBTバッジを受け取れます。
+        </Text>
+        <Group mt="md">
+          <Button component={Link} to="/user" variant="light" color="blue">
+            任意ログインしてバッジ受け取り
+          </Button>
+        </Group>
+      </Paper>
+
       <Paper shadow="sm" withBorder className='p-4'>
         <div className="flex items-center mb-4">
           <IconGiftCard size={24} />
