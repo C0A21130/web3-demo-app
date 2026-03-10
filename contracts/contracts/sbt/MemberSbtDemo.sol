@@ -19,6 +19,9 @@ contract MemberSbtDemo is ERC5192, AccessControl {
     
     // トークンIDとユーザー名のマッピング
     mapping(uint256 => string) private _userNames;
+
+    // 1アドレスにつき1つだけSBTを保有可能にするための状態
+    mapping(address => bool) private _hasCredential;
     
     // SBT発行時に発火するイベント
     event SBTMinted(address indexed to, uint256 indexed tokenId, string userName);
@@ -50,13 +53,22 @@ contract MemberSbtDemo is ERC5192, AccessControl {
         string memory userName
     ) external returns (uint256) {
         require(to == msg.sender, "MemberSbtDemo: You can only mint an SBT for yourself.");
+        require(!_hasCredential[to], "MemberSbtDemo: SBT already issued for this address.");
 
         uint256 tokenId = _nextTokenId;
         _safeMint(to, tokenId);
         _nextTokenId++;
         _userNames[tokenId] = userName;
+        _hasCredential[to] = true;
         emit SBTMinted(to, tokenId, userName);
         return tokenId;
+    }
+
+    /**
+     * @dev 指定アドレスがSBTを既に保有しているかどうかを返す
+     */
+    function hasCredential(address userAddress) public view returns (bool) {
+        return _hasCredential[userAddress];
     }
     
     /**

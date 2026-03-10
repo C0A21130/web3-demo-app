@@ -40,6 +40,9 @@ export const issueCredential = async (
             if (txError.message?.includes('You can only mint an SBT for yourself')) {
                 throw new Error('You can only mint an SBT for yourself');
             }
+            if (txError.message?.includes('SBT already issued for this address')) {
+                throw new Error('SBT already issued for this address');
+            }
             if (txError.message?.includes('insufficient funds')) {
                 throw new Error('Insufficient funds for gas');
             }

@@ -17,6 +17,7 @@ const MyCredential = (props: MyCredentialProps) => {
   const { hidden, wallet, contractAddress, credentialContractAddress } = props;
   const [credential, setCredential] = useState<UserCredential>();
   const [inputUserName, setInputUserName] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [credentialStatus, setCredentialStatus] = useState<"会員証を発行する" | "会員証を発行中" | "会員証の発行完了" | "会員証の発行に失敗">("会員証を発行する");
 
   // 会員証の情報を取得する関数
@@ -39,8 +40,10 @@ const MyCredential = (props: MyCredentialProps) => {
   // 会員証を発行するボタンがクリックされたときの処理
   const handleIssueCredential = async () => {
     setCredentialStatus("会員証を発行中");
+    setErrorMessage("");
     if (wallet == undefined) {
       setCredentialStatus("会員証の発行に失敗");
+      setErrorMessage("ウォレットが未接続です");
       return;
     }
 
@@ -51,6 +54,8 @@ const MyCredential = (props: MyCredentialProps) => {
     } catch (error) {
       console.error("会員証の発行に失敗:", error);
       setCredentialStatus("会員証の発行に失敗");
+      const message = error instanceof Error ? error.message : "会員証の発行に失敗しました";
+      setErrorMessage(message);
       return;
     }
     await initCredential();
@@ -94,7 +99,9 @@ const MyCredential = (props: MyCredentialProps) => {
         会員証を発行することでありがトークンを受け取りやすくなります
       </Alert>
       <Alert title="会員証の発行に失敗" color="red" className="mt-4" hidden={credentialStatus !== "会員証の発行に失敗"}>
-        会員証の発行に失敗しました。ユーザー名を入力・変更してもう一度お試しください。
+        {errorMessage === "SBT already issued for this address"
+          ? "このアドレスには既に会員証が発行されています。"
+          : "会員証の発行に失敗しました。ユーザー名を入力・変更してもう一度お試しください。"}
       </Alert>
     </Paper>
   );

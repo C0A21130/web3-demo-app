@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { formatEther } from 'ethers';
-import { Flex, Group, Text, Paper, Container, Button, Alert } from '@mantine/core';
+import { Flex, Group, Text, Paper, Container, Button, Alert, Checkbox } from '@mantine/core';
 import { IconWallet } from '@tabler/icons-react';
 import { rpcUrls, scoringEndpointUrl, rpcUrlIndexContext, contractAddress, credentialContractAddress, receiveAccountPrivateKey, walletContext } from '../App';
 import MyCredential from '../components/credential/MyCredential';
@@ -14,6 +14,7 @@ const User = () => {
   const [rpcUrlIndex, setRpcUrlIndex] = useContext(rpcUrlIndexContext);
   const [address, setAddress] = useState<string>("0x0");
   const [balance, setBalance] = useState<string>("0.0");
+  const [isExperienceCompleted, setIsExperienceCompleted] = useState<boolean>(false);
   const [receivedEthStatus, setReceivedEthStatus] = useState<"ETHを受け取る" | "ETHを受け取り中" | "ETHを受け取り完了" | "ETHの受け取りに失敗" | "ETHの残高は十分です">("ETHを受け取る");
 
   // ウォレットの初期化
@@ -94,7 +95,16 @@ const User = () => {
       <Alert title="エラー" color="red" className="mt-4" hidden={address != "0x0" || rpcUrlIndex != -1}>
         有効なブロックチェーンノードが見つかりません
       </Alert>
-      <MyCredential hidden={balance == "0.0"} wallet={wallet} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
+      <Paper shadow="sm" withBorder className="p-4 mt-6" hidden={balance == "0.0"}>
+        <Text size="lg">体験完了チェック</Text>
+        <Checkbox
+          mt="sm"
+          checked={isExperienceCompleted}
+          label="チャット体験が完了したので、参加バッジを受け取る"
+          onChange={(event) => setIsExperienceCompleted(event.currentTarget.checked)}
+        />
+      </Paper>
+      <MyCredential hidden={balance == "0.0" || !isExperienceCompleted} wallet={wallet} contractAddress={contractAddress} credentialContractAddress={credentialContractAddress} />
       <MyPolicy hidden={scoringEndpointUrl === ""} wallet={wallet} contractAddress={contractAddress} />
       <MyTokenList hidden={balance == "0.0"} wallet={wallet} contractAddress={contractAddress} rpcUrl={rpcUrls[rpcUrlIndex]} />
     </Container>

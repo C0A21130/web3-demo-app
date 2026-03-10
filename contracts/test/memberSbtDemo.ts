@@ -46,6 +46,14 @@ describe("MemberSbtDemo", function () {
       ).to.be.revertedWith("MemberSbtDemo: You can only mint an SBT for yourself.");
     });
 
+    it("❌ 同じアドレスは2回SBTを発行できない", async function () {
+      await demoSbt.connect(user1).safeMint(user1.address, "First Badge");
+
+      await expect(
+        demoSbt.connect(user1).safeMint(user1.address, "Second Badge")
+      ).to.be.revertedWith("MemberSbtDemo: SBT already issued for this address.");
+    });
+
     it("🚫 発行されたSBTは譲渡できない", async function () {
       await demoSbt.connect(user1).safeMint(user1.address, "Test User 1");
 
@@ -62,6 +70,13 @@ describe("MemberSbtDemo", function () {
 
       expect(await demoSbt.verifyCredential(expectedTokenId, user1.address)).to.be.true;
       expect(await demoSbt.verifyCredential(expectedTokenId, user2.address)).to.be.false;
+    });
+
+    it("✅ hasCredentialで発行済み状態を確認できる", async function () {
+      expect(await demoSbt.hasCredential(user1.address)).to.be.false;
+      await demoSbt.connect(user1).safeMint(user1.address, "Test User 1");
+      expect(await demoSbt.hasCredential(user1.address)).to.be.true;
+      expect(await demoSbt.hasCredential(user2.address)).to.be.false;
     });
   });
 });
