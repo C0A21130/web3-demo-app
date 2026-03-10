@@ -9,12 +9,16 @@ import MyPolicy from '../components/scoring/MyPolicy';
 import getWallet from '../components/getWallet';
 import transferEther  from '../components/transferEther';
 
+const backendBaseUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:8080";
+
 const User = () => {
   const [wallet, setWallet] = useContext(walletContext);
   const [rpcUrlIndex, setRpcUrlIndex] = useContext(rpcUrlIndexContext);
   const [address, setAddress] = useState<string>("0x0");
   const [balance, setBalance] = useState<string>("0.0");
   const [isExperienceCompleted, setIsExperienceCompleted] = useState<boolean>(false);
+  const [authStatus, setAuthStatus] = useState<"未ログイン" | "ログイン中" | "ログイン済み" | "ログイン失敗">("未ログイン");
+  const [authMessage, setAuthMessage] = useState<string>("");
   const [receivedEthStatus, setReceivedEthStatus] = useState<"ETHを受け取る" | "ETHを受け取り中" | "ETHを受け取り完了" | "ETHの受け取りに失敗" | "ETHの残高は十分です">("ETHを受け取る");
 
   // ウォレットの初期化
@@ -55,9 +59,97 @@ const User = () => {
     setBalance(provider == null ? "0.0" : formatEther(balance));
   }
 
+  const checkAuthSession = async () => {
+    try {
+      const response = await fetch(`${backendBaseUrl}/auth/me`, {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        setAuthStatus("未ログイン");
+        setAuthMessage("");
+        return;
+      }
+
+      const data = await response.json();
+      setAuthStatus("ログイン済み");
+      setAuthMessage(`認証済みアドレス: ${String(data.address ?? "unknown")}`);
+    } catch {
+      setAuthStatus("ログイン失敗");
+      setAuthMessage("認証サーバーに接続できませんでした");
+    }
+  }
+
+  const loginWithSignature = async () => {
+    if (!wallet) {
+      setAuthStatus("ログイン失敗");
+      setAuthMessage("先にウォレット接続を完了してください");
+      return;
+    }
+
+    setAuthStatus("ログイン中");
+    setAuthMessage("");
+
+    try {
+      const nonceResponse = await fetch(`${backendBaseUrl}/auth/nonce?address=${wallet.address}`);
+      if (!nonceResponse.ok) {
+        throw new Error("nonce取得に失敗しました");
+      }
+
+      const nonceData = await nonceResponse.json();
+      const message = String(nonceData.message ?? "");
+      if (!message) {
+        throw new Error("署名メッセージが取得できませんでした");
+      }
+
+      const signature = await wallet.signMessage(message);
+      const verifyResponse = await fetch(`${backendBaseUrl}/auth/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          address: wallet.address,
+          message,
+          signature,
+        }),
+      });
+
+      const verifyData = await verifyResponse.json();
+      if (!verifyResponse.ok) {
+        const errorCode = String(verifyData.error ?? "unknown_error");
+        throw new Error(errorCode);
+      }
+
+      setAuthStatus("ログイン済み");
+      setAuthMessage("署名認証に成功しました（バッジ保有を確認済み）");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "ログインに失敗しました";
+      setAuthStatus("ログイン失敗");
+      if (message === "badge_required") {
+        setAuthMessage("SBTバッジ未保有のためログインできません（先にバッジ発行が必要です）");
+      } else if (message === "invalid_or_expired_nonce") {
+        setAuthMessage("署名の有効期限が切れました。もう一度お試しください");
+      } else if (message === "invalid_signature") {
+        setAuthMessage("署名検証に失敗しました");
+      } else {
+        setAuthMessage(message);
+      }
+    }
+  }
+
+  const logout = async () => {
+    await fetch(`${backendBaseUrl}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    setAuthStatus("未ログイン");
+    setAuthMessage("");
+  }
+
   // Update the wallet details when the component mounts or when the wallet changes
   useEffect(() => {
     initWallet();
+    checkAuthSession();
   }, []);
 
   return (
@@ -88,6 +180,24 @@ const User = () => {
             {receivedEthStatus}
           </Button>
         </Group>
+      </Paper>
+      <Paper shadow="sm" withBorder className="p-4 mt-4" hidden={balance == "0.0"}>
+        <Text size="lg">署名ログイン（任意）</Text>
+        <Text size="sm" c="dimmed" mt="xs">
+          チャット体験はログイン不要です。SBTバッジ保有者は署名ログインで認証状態を作成できます。
+        </Text>
+        <Group mt="md">
+          <Button onClick={loginWithSignature} disabled={authStatus === "ログイン中"}>
+            {authStatus === "ログイン中" ? "署名確認中..." : "署名してログイン"}
+          </Button>
+          <Button variant="light" color="gray" onClick={logout}>
+            ログアウト
+          </Button>
+        </Group>
+        <Alert mt="md" color={authStatus === "ログイン済み" ? "green" : authStatus === "ログイン失敗" ? "red" : "blue"}>
+          状態: {authStatus}
+          {authMessage ? ` / ${authMessage}` : ""}
+        </Alert>
       </Paper>
       <Alert title="注意" color="yellow" className="mt-4" hidden={address != "0x0" || rpcUrlIndex == -1}>
         ブロックチェーンに接続中です

@@ -5,7 +5,7 @@ import {
 	type ContractRunner,
 	type Eip1193Provider,
 } from "ethers";
-import MyTokenArtifact from "../../../contracts/artifacts/contracts/Mytoken.sol/MyToken.json";
+import MyTokenArtifact from "../../abi/MyToken.json";
 
 type GetOwnerAddressDeps = {
 	getRunner?: () => Promise<ContractRunner> | ContractRunner;
