@@ -198,6 +198,9 @@ const User = () => {
           状態: {authStatus}
           {authMessage ? ` / ${authMessage}` : ""}
         </Alert>
+        <Alert mt="sm" color="yellow" hidden={authStatus !== "ログイン失敗"}>
+          ログインに失敗しても、チャットはログインなしでそのまま継続できます。
+        </Alert>
       </Paper>
       <Alert title="注意" color="yellow" className="mt-4" hidden={address != "0x0" || rpcUrlIndex == -1}>
         ブロックチェーンに接続中です

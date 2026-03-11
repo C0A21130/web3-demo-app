@@ -1,6 +1,15 @@
 import { config } from "./config.js";
 
 export async function callDifyChat(query: string, userId: string, conversationId?: string) {
+  if (config.chatMockMode) {
+    return {
+      conversation_id: conversationId ?? "mock-conversation",
+      answer: `[mock] ${query}`,
+      mode: "mock",
+      user: `${config.difyAppUserPrefix}:${userId}`,
+    };
+  }
+
   if (!config.difyApiKey) {
     throw new Error("DIFY_API_KEY is not configured");
   }

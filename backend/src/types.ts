@@ -20,3 +20,17 @@ export type ChatRequestBody = {
   query: string;
   conversation_id?: string;
 };
+
+export type BadgeIssueRequestBody = {
+  address: string;
+  userName: string;
+};
+
+export type BadgeIssueLog = {
+  at: string;
+  ok: boolean;
+  to: string;
+  userName: string;
+  txHash?: string;
+  error?: string;
+};
