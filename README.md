@@ -75,6 +75,7 @@ NFT交換システムでは最もシンプルなNFT交換を実現する。
   - [フロントエンドの仕様書](/frontend/README.md)
 
 - **`docs/`**: このアプリケーションに関する仕様書を配置
+   - [起動・動作確認README（任意ログイン + SBT）](/docs/README_startup_optional_login_ja.md)
    - [NFTの仕様書](/docs/token.md)
    - [IPFSを活用した画像アップロードの仕様書](/docs/ipfs.md) 
    - [SBTを用いた会員証の仕様](/docs/SBT.md)
