@@ -6,6 +6,10 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./scoring/Scoring.sol";
 
+interface IMyGovernor {
+    function forVoteUsers(uint256 proposalId) external view returns (address[] memory);
+}
+
 contract SsdlabToken is ERC721, AccessControl, Scoring {
     // 状態変数の定義
     uint256 private _nextTokenId = 0;
@@ -104,6 +108,20 @@ contract SsdlabToken is ERC721, AccessControl, Scoring {
         // interactions: _toへEtherの送信
         (bool success, ) = _to.call{value: 0.1 ether}("");
         require(success, "Transfer failed");
+    }
+
+    /// 投票ユーザーへNFTを一括転送する関数
+    /// @param toList 転送先アドレスのリスト
+    /// @param _tokenName トークン名
+    function batchTransfer(
+        address[] calldata toList,
+        string memory _tokenName
+    ) public {
+        for (uint256 i = 0; i < toList.length; i++) {
+            uint256 tokenId = safeMint(msg.sender, _tokenName);
+            setApprovalForAll(msg.sender, true);
+            safeTransferFrom(msg.sender, toList[i], tokenId);
+        }
     }
 
     /// @dev See {ERC165-supportsInterface}, {AccessControl-supportsInterface}, {Scoring-supportsInterface}.
