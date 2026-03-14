@@ -10,6 +10,7 @@ import Gift from './pages/Gift';
 import NotFound from './pages/NotFound';
 import Score from './pages/Score';
 import User from './pages/User';
+import Governor from './pages/Governor';
 import './index.css';
 import '@mantine/core/styles.css';
 
@@ -18,8 +19,10 @@ export const walletContext = createContext<[Wallet | HDNodeWallet | undefined, D
 export const rpcUrls = ["http://localhost:8545"];
 export const scoringEndpointUrl: string = "";
 export const ipfsApiUrl = "http://localhost";
-export const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-export const credentialContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+export const contractAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+export const credentialContractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+export const governanceTokenContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+export const governanceContractAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 export const receiveAccountPrivateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 function App() {
@@ -52,6 +55,7 @@ function App() {
                   <Route path="/gift" element={<Gift />} />
                   <Route path="/score" element={<Score />} />
                   <Route path="/user" element={<User />} />
+                  <Route path="/governor" element={<Governor />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AppShell.Main>
