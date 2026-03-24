@@ -1,86 +1,77 @@
-# Frontend Development
+# Frontend 
 
-## User Interface
+フロントエンドではスマートコントラクトのにおけるスマートコントラクトの呼び出しやユーザーインターフェースを提供する
 
-1. Home：
+**ディレクトリ構成**
+
+```bash
+frontend
+├── README.md                    # フロントエンド全体の説明書
+├── abi                          # スマートコントラクトのABIファイルを配置
+│   ├── MemberSbtDemo.json       # SBTのABIファイル
+│   └── SsdlabToken.json         # NFTのABIファイル
+├── dist                         # ビルド後に生成される静的ファイル
+├── eslint.config.js             # ESLintの設定ファイル
+├── index.html                   # アプリケーションのエントリHTML
+├── jest.config.js               # Jestの設定
+├── package-lock.json
+├── package.json
+├── public
+├── src                          # アプリケーション本体のソースコード
+│   ├── App.css                  # ルートコンポーネント用のスタイル
+│   ├── App.tsx                  # ルートReactコンポーネント
+│   ├── assets                   # 画像などの静的アセット
+│   ├── components               # 再利用可能なコンポーネント群
+│   │   ├── credential           # SBTのコンポーネント
+│   │   ├── scoring              # 信用スコア用コンポーネント
+│   │   ├── token                # NFT用コンポーネント
+│   │   ├── getWallet.ts         # ウォレット取得・初期化用
+│   │   ├── Header.tsx           # 画面上部のヘッダーコンポーネント
+│   │   ├── Navbar.tsx           # 画面上部のナビゲーションバー
+│   │   └── transfer.ts          # ETH/NFT送金処理ラッパー
+│   ├── index.css                # 全体スタイル（グローバルCSS）
+│   ├── main.tsx                 # Reactアプリのエントリポイント
+│   ├── pages                    # 画面単位のページコンポーネント
+│   └── vite-env.d.ts            # 共通の型定義
+├── test                         # フロントエンドのテストコード
+│   ├── credential.test.ts       # SBT関連のテスト
+│   ├── ipfs.test.ts             # IPFS連携とNFTミントのテスト
+│   ├── localStorage.ts          # ローカルストレージ用ユーティリティ／テスト補助
+│   ├── scoring.test.ts          # 信用スコア機能のテスト
+│   ├── token.test.ts            # NFTトークン機能のテスト
+│   ├── transferEther.test.ts    # ETH送金機能のテスト
+│   └── wallet.test.ts           # ウォレット関連機能のテスト
+├── tsconfig.app.json            # アプリ用TypeScript設定
+├── tsconfig.json                # 共通のTypeScript設定
+├── tsconfig.node.json           # Node環境向けTypeScript設定
+├── tsconfig.tsbuildinfo         # TypeScriptビルドキャッシュ
+└── vite.config.mts              # Viteのビルド設定
+```
+
+## ユーザーインターフェース
+
+- ホーム([Home.tsx](/frontend/src/pages/Home.tsx))：
     ホーム画面では、発行されたNFT(Non-Fungible Token)一覧を確認することができる。
     発行されたNFTのトークン名やオーナー、感謝を受け取ったユーザーの確認が可能である。
-    ![Home UI](../docs/images/home.png)
+    ![Home UI](/docs/images/home.png)
 
-2. Present：
+2. ギフト([Gift.tsx](/frontend/src/pages/Gift.tsx))：
     プレゼント画面では、NFTを利用した感謝の送信を行う。
     トークン名と送信先のアドレス(もしくはユーザー名)を指定して送信する。
     まずトークンを発行し、発行されたトークンを転送することで感謝の送信を行う。
-    ![Present UI](../docs/images/present.png)
+    ![Present UI](/docs/images/present.png)
 
-3. User：
+3. ユーザー([User.tsx](/frontend/src/pages/User.tsx))：
     ユーザー画面では、ウォレットの作成やETHの受け取りや会員証の発行をする。
-    ![User UI](../docs/images/user.png)
+    ![User UI](/docs/images/user.png)
 
-4. Score:
+4. Score([Score.tsx](/frontend/src/pages/Score.tsx)) :
     信用スコア算出のためにMetamaskのウォレットに接続し、NFTのTransfer logを取得する。
     取得後のログを[Trust Scoring System](https://github.com/C0A21130/trust-score/)に送信しグラフデータベースに取引ネットワークとして構造化し記録する。
 
-## Frontend Architecture
+## 利用方法
 
-フロントエンドでは、大きく分けて2つの機能に分けられる。
-
-1. Wallet：ウォレットに関するクラス
-    - getWallet
-2. Contract Call：スマートコントラクトを呼び出すためのファイル
-    - NFT: fetchToken, putToken, transferToken
-    - 送金: transferEth
-    - SBT: fetchCredential, issueCredential, verifyCredential
-    - 信用スコア: fetchScore, verifyScore
-
-以下にクラス図を示す。
-
-![Frontend](../docs/images/frontend.png)
-
-### Wallet
-
-`frontend/src/components/getWallet.ts`はウォレットを作成する関数である。
-ブロックチェーンに接続し、署名を行うためのモジュールであるウォレットを[ethers.jsのWallet](https://docs.ethers.org/v6/api/wallet/)クラスを用いて実装している。
-秘密鍵はシード値から生成され、ブラウザのローカルストレージに保存される。
-より詳しく仕様について[wallet.md](./../docs/wallet.md)を参照する。
-
-![Wallet](../docs/images/wallet.png)
-
-### Contract Call
-
-1. トークンの取得
-    `frontend/src/components/fetchToken.ts`はトークンを一覧として取得する関数である。
-    まずスマートコントラクトにおけるTransferイベントのログ(トークンID、送信元アドレス、送信先アドレス)を取得する。
-    取得したトークンのログからNFTのトークンのIDを取得し、トークン名等の情報(トークンの所有者、トークン名)を取得する。
-    トークンの取得の方法は以下が存在する。
-    - すべてのトークンを取得。
-    - ウォレットから送信されたトークンを取得。
-    - ウォレットが受信したトークンを取得。
-
-2. トークンの発行
-    `frontend/src/components/putToken.ts`は指定されたウォレットとスマートコントラクトを使用して新しいNFTトークンを発行する関数である。
-    ウォレットの残高を確認し、十分なETHがあるかをチェックする。
-    その後、スマートコントラクトの`safeMint`関数を呼び出してNFTを発行する。
-
-3. トークンの転送
-    `frontend/src/components/transferToken.ts`は、指定されたウォレットとスマートコントラクトを使用してNFTトークンを転送する関数である。
-    ウォレットの残高を確認し、十分なETHがあるかをチェックする。
-    その後、スマートコントラクトの`safeTransferFrom`関数を呼び出してNFTを発行する。
-
-## How to
-
-### Config Constant
-
-各種設定が `frontend/src/App.tsx` ファイルに記載されている。
-各自の環境に合わせて設定を変更する必要がある。
-
-- rpcUrls: 接続するJSON-RPCサーバーのURLを一つ以上記載する
-- contractAddress: 呼び出し先のスマートコントラクトのコントラクトアドレスを指定する
-- credentialContractAddress: 呼び出し先のSBTのスマートコントラクトアドレスを指定する
-- receiveAccountPrivateKey: ETHを受け取る先のアカウントの秘密鍵を指定する
-- ipfsApiUrl: 接続するIPFSのノードのURLを指定する
-
-### Start the Frontend Server
+### フロントエンドサーバの起動方法
 
 新しいターミナルを開き、開発用のフロントエンドサーバーを起動する。
 コードが変更される度に変更が反映される。
@@ -90,7 +81,7 @@ cd frontend
 npm run dev
 ```
 
-### Run Tests
+### テスト作成・実行
 
 テストコードは `frontend/test` 内に `.test.ts`の拡張子で作成する。
 JestとMocha, Chaiを活用してテストコードを作成する。
@@ -133,7 +124,7 @@ npm run test
 npm run test test/<ファイル名>.test.ts
 ```
 
-### Build the Frontend
+### ビルドと本番環境へのデプロイ
 
 開発が全て完了し、作成したコードを一つのコードにしたい場合は利用する。
 
@@ -142,18 +133,23 @@ cd frontend
 npm run build
 ```
 
-HTML・CSS・JSファイルが`frontend/dist/`に出力される。
-出力されたファイルを利用するには以下のコマンドを実行する。
+HTML・CSS・JSファイルが一つにまとめられて `frontend/dist/index.html` に出力される。
+出力されたファイルを確認するには以下のコマンドを実行する。
 
 ```bash
 npm run preview
 ```
 
-## Example
+またアプリのデプロイにはIPFSを活用する。
+ビルド後の `index.html` ファイルを[ipfs-webui](https://github.com/ipfs/ipfs-webui)やコマンドを利用してアップロードしCIDを取得する。
+Webブラウザを用いて[http://<IPFS_HOSTNAME>:8080/ipfs/<CID>](http://<IPFS_HOSTNAME>:8080/ipfs/<CID>)にアクセスする。
+IPFS_HOSTNAMEとCIDは自身の環境に合わせて変更する
 
-以下の練習問題は `contracts/README.md` の[Example](https://github.com/C0A21130/web3-demo-app/tree/main/contracts)を解き、理解していることが前提である。
+## 練習問題
 
-### Smart Contract
+以下の練習問題は[スマートコントラクトの連続問題](/contracts/README.md#練習問題)を解き、理解していることが前提である。
+
+### スマートコントラクトのデプロイ
 
 - 課題1: スマートコントラクトのデプロイ
     - 問題1: スマートコントラクトをデプロイするためのTypeScriptのソースコードを `contracts/ignition/modules/` 内に作成する。
@@ -196,7 +192,7 @@ npm run preview
     await tx.await(); // マイニングが終了しブロックが確定するまで待機する
     ```
 
-### Frontend
+### フロントエンド
 
 - 課題1: タブを追加してNFT管理画面(UI)を作成する
     - 問題1: `frontend/src/components/Navbar.tsx`の`menuItems`を編集してNFTの管理画面へ移行するための画面をメニューに追加する。
@@ -260,7 +256,7 @@ npm run preview
     }
     ```
 
-## Reference
+## 関連サイト
 
 - vite, https://ja.vite.dev/
 - Hardhat, https://hardhat.org/

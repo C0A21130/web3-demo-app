@@ -9,7 +9,7 @@ export default {
   },
   testEnvironment: 'node',
   transformIgnorePatterns: [
-    'node_modules/(?!(ipfs-http-client|@ipld|multiformats|uint8arrays)/)'
+    'node_modules/(?!(kubo-rpc-client|@ipld|multiformats|uint8arrays)/)'
   ],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.[jt]s$': '$1'

@@ -1,6 +1,7 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 async function deployFixture() {
   const [owner, addr1, addr2, addr3] = await ethers.getSigners();
@@ -10,12 +11,12 @@ async function deployFixture() {
 
 describe("TrustRating Contract", function () {
   it("新しいオペレーターを追加できること", async function () {
-    const { Rating, owner, addr1 } = await loadFixture(deployFixture);
+    const { Rating, owner, addr1 } = await deployFixture();
     await Rating.connect(owner).setOperator(addr1.address);
   });
 
   it("スコアを登録・削除・取得できること", async function () {
-    const { Rating, owner, addr1 } = await loadFixture(deployFixture);
+    const { Rating, owner, addr1 } = await deployFixture();
     
     // スコアの登録
     await Rating.connect(owner).rate(addr1.address, 85);
@@ -29,7 +30,7 @@ describe("TrustRating Contract", function () {
   });
 
   it("オペレーター以外がスコアを登録・削除できないこと", async function () {
-    const { Rating, addr1, addr2 } = await loadFixture(deployFixture);
+    const { Rating, addr1, addr2 } = await deployFixture();
     
     // スコアの登録を試みる
     await expect(
@@ -43,7 +44,7 @@ describe("TrustRating Contract", function () {
   });
 
   it("-127から127の範囲外のスコアを登録できないこと", async function () {
-    const { Rating, owner, addr1 } = await loadFixture(deployFixture);
+    const { Rating, owner, addr1 } = await deployFixture();
     
     // 範囲外のスコアの登録を試みる
     await expect(

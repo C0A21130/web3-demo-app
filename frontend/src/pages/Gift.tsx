@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatEther } from 'ethers';
-import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import { create, KuboRPCClient } from 'kubo-rpc-client';
 import { Paper, Text, TextInput, Button, Container, Alert, Flex } from '@mantine/core';
 import { ipfsApiUrl, walletContext, contractAddress, credentialContractAddress } from '../App';
 import CreatePhoto from '../components/token/CreatePhoto';
@@ -18,7 +18,7 @@ const Gift = () => {
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
-  const [ipfsClient, setIpfsClient] = useState<IPFSHTTPClient | null>(null);
+  const [ipfsClient, setIpfsClient] = useState<KuboRPCClient | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [credentials, setCredentials] = useState<UserCredential[]>([]);
   const [presentStatus, setPresentStatus] = useState<"画像作成中" | "感謝を送信する" | "感謝を送信中" | "感謝を送信失敗" | "感謝を送信完了" >("画像作成中");
@@ -47,7 +47,7 @@ const Gift = () => {
 
     // IPFSとの接続を確立する
     try {
-      const client = create({ url: `${ipfsApiUrl}:5001`, timeout: 3000 });
+      const client = create({ url: `${ipfsApiUrl}:5001`, timeout: 3000 }) as KuboRPCClient;
       await client.id();
       setIpfsClient(client);
       setConnecting(true);

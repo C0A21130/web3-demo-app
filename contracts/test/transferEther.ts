@@ -1,6 +1,7 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { network } from "hardhat";
+
+const { ethers } = await network.connect();
 
 // Fixtureのデプロイ関数
 async function deployFixture() {
@@ -14,7 +15,7 @@ describe("TransferEther", function () {
 
     it("コントラクトへの送金処理", async function () {
         // スマートコントラクトのデプロイ
-        const { SsdlabToken, agent } = await loadFixture(deployFixture);
+        const { SsdlabToken, agent } = await deployFixture();
 
         // コントラクトへ0.3ether送金
         const transactionHash = await agent.sendTransaction({
@@ -30,7 +31,7 @@ describe("TransferEther", function () {
 
     it("コントラクトからfaucet関数を利用した送金処理", async function () {
         // スマートコントラクトのデプロイ
-        const { SsdlabToken, agent } = await loadFixture(deployFixture);
+        const { SsdlabToken, agent } = await deployFixture();
 
         // コントラクトへ0.3ether送金
         const transactionHash = await agent.sendTransaction({

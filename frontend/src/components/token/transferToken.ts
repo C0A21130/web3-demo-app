@@ -1,14 +1,15 @@
-import { ethers, Wallet, HDNodeWallet, formatEther, isAddress } from "ethers";
+import { ethers, Wallet, HDNodeWallet, formatEther } from "ethers";
 import SsdlabAbi from "../../../abi/SsdlabToken.json";
 
 /**
- * This function transfers an NFT token using the provided wallet and contract address.
+ * 指定したウォレットとコントラクトアドレスを使ってNFTトークンを転送する関数
  * 
- * @param wallet - The wallet instance (either Wallet or HDNodeWallet) used to sign the transaction.
- * @param contractAddress - The address of the smart contract to interact with.
- * @param to - The address of the recipient of the NFT token.
- * @param tokenId - The ID of the NFT token to be transferred.
- * @throws Will throw an error if the wallet balance is insufficient or if the transfer process fails.
+ * @param wallet - 取引に署名するためのウォレットインスタンス（WalletまたはHDNodeWallet）
+ * @param contractAddress - 操作対象のスマートコントラクトのアドレス
+ * @param to - NFTトークンの受取人アドレス
+ * @param tokenId - 転送するNFTトークンのID
+ * @returns boolean - 転送が成功した場合はtrue、失敗した場合はfalseを返す
+ * @throws ウォレット残高が不足している場合や転送処理に失敗した場合はエラーをスロー
  */
 const transferToken = async (wallet: Wallet | HDNodeWallet, contractAddress: string, to: string, tokenId: number): Promise<boolean> => {
   const contract = new ethers.Contract(contractAddress, SsdlabAbi.abi, wallet);
@@ -16,17 +17,12 @@ const transferToken = async (wallet: Wallet | HDNodeWallet, contractAddress: str
   let toAddress = to;
   const balance = await contract.balanceOf(from);
 
-  // Check if the wallet has enough balance to mint NFT
+  // NFTを発行するための残高があるか確認
   if (formatEther(balance) == "0.0") {
     throw new Error('Insufficient balance');
   }
 
-  // transfer address to user name
-  if (!isAddress(to)) {
-    toAddress = await contract.getUserAddress(to);
-  }
-
-  // Call contract to transfer NFT
+  // NFT転送スマートコントラクトを呼び出す
   try {
     const tx = await contract.safeTransferFrom(from, toAddress, tokenId);
     const txReceipt = await tx.wait();
